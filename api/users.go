@@ -10,8 +10,6 @@ import (
 var (
 	UserData   map[int]User
 	UserSchema graphql.Schema
-
-	userType *graphql.Object
 )
 
 type User struct {
@@ -23,7 +21,7 @@ type User struct {
 func init() {
 	UserData = GetUserData()
 
-	userType = graphql.NewObject(graphql.ObjectConfig{
+	userType := graphql.NewObject(graphql.ObjectConfig{
 		Name:        "User",
 		Description: "A user.",
 		Fields: graphql.Fields{
