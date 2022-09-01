@@ -13,7 +13,7 @@ import (
 	"golang.org/x/exp/maps"
 )
 
-func TestScehema(t *testing.T) {
+func TestUsers(t *testing.T) {
 	RegisterFailHandler(Fail)
 	RunSpecs(t, "User tests")
 }
