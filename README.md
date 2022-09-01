@@ -1,3 +1,5 @@
+![build and test workflow](https://github.com/Dylan-Kentish/GraphQLFakeDataAPI/actions/workflows/go.yml/badge.svg)
+
 # GraphQL-Fake-Data-API
 A GraphQL API providing fake data, written in go.
 
