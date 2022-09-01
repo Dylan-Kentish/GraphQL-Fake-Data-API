@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"github.com/graphql-go/graphql"
+	"golang.org/x/exp/maps"
 )
 
 var (
@@ -72,7 +73,8 @@ func init() {
 		Name: "Query",
 		Fields: graphql.Fields{
 			"user": &graphql.Field{
-				Type: userType,
+				Type:        userType,
+				Description: "User by ID",
 				Args: graphql.FieldConfigArgument{
 					"id": &graphql.ArgumentConfig{
 						Description: "id of the user",
@@ -85,6 +87,13 @@ func init() {
 						return nil, err
 					}
 					return GetUser(id), nil
+				},
+			},
+			"users": &graphql.Field{
+				Type:        graphql.NewList(userType),
+				Description: "All users",
+				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+					return maps.Values(UserData), nil
 				},
 			},
 		},

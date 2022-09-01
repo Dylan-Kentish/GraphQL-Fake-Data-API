@@ -8,6 +8,7 @@ require (
 	github.com/graphql-go/handler v0.2.3
 	github.com/onsi/ginkgo/v2 v2.1.6
 	github.com/onsi/gomega v1.20.2
+	golang.org/x/exp v0.0.0-20220827204233-334a2380cb91
 )
 
 require (
