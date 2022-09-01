@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"net/http"
 
-	api "github.com/Dylan-Kentish/GraphQLFakeDataAPI/internal"
+	"github.com/Dylan-Kentish/GraphQLFakeDataAPI/api"
 	"github.com/graphql-go/handler"
 )
 
 func main() {
 	h := handler.New(&handler.Config{
-		Schema:   &api.Schema,
+		Schema:   &api.UserSchema,
 		Pretty:   true,
 		GraphiQL: true,
 	})
