@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"strconv"
-	"testing"
 
 	"github.com/Dylan-Kentish/GraphQLFakeDataAPI/api"
 	"github.com/graphql-go/graphql"
@@ -12,11 +11,6 @@ import (
 	. "github.com/onsi/gomega"
 	"golang.org/x/exp/maps"
 )
-
-func TestUsers(t *testing.T) {
-	RegisterFailHandler(Fail)
-	RunSpecs(t, "User tests")
-}
 
 var _ = Describe("Users", func() {
 	It("Invalid ID", func() {
