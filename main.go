@@ -10,7 +10,7 @@ import (
 
 func main() {
 	h := handler.New(&handler.Config{
-		Schema:   &api.UserSchema,
+		Schema:   &api.Schema,
 		Pretty:   true,
 		GraphiQL: true,
 	})
