@@ -1,6 +1,7 @@
 package api
 
 import (
+	"fmt"
 	"strconv"
 
 	"github.com/graphql-go/graphql"
@@ -136,7 +137,21 @@ func init() {
 			"albums": &graphql.Field{
 				Type:        graphql.NewList(albumType),
 				Description: "All albums",
+				Args: graphql.FieldConfigArgument{
+					"userid": &graphql.ArgumentConfig{
+						Description: "id of the user",
+						Type:        graphql.String,
+					},
+				},
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+					if idInterface, exists := p.Args["userid"]; exists {
+						id, err := strconv.Atoi(idInterface.(string))
+						if err == nil {
+							return getAlbumsByUserID(id), nil
+						}
+						return nil, err
+					}
+
 					return maps.Values(Data.Albums), nil
 				},
 			},
@@ -160,4 +175,17 @@ func getAlbum(id int) Album {
 		return album
 	}
 	return Album{}
+}
+
+func getAlbumsByUserID(userID int) []Album {
+	albums := make([]Album, 0)
+	userIDString := fmt.Sprint(userID)
+
+	for _, album := range Data.Albums {
+		if album.UserID == userIDString {
+			albums = append(albums, album)
+		}
+	}
+
+	return albums
 }

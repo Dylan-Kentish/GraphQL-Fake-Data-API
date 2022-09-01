@@ -47,6 +47,36 @@ var _ = Describe("Albums", func() {
 		Expect(album).To(Equal(api.Data.Albums[id]))
 	}, albumTests)
 
+	userTests := make([]TableEntry, len(api.Data.Users))
+
+	for i, user := range api.Data.Users {
+		id, _ := strconv.Atoi(user.ID)
+		userTests[i] = Entry(user.ID, id)
+	}
+
+	DescribeTable("Get album by userID", func(userId int) {
+		// Query
+		query := fmt.Sprintf(`{albums(userid:"%s"){id,userid,description}}`, fmt.Sprint(userId))
+		params := graphql.Params{Schema: api.Schema, RequestString: query}
+		r := graphql.Do(params)
+		Expect(r.Errors).To(BeEmpty())
+
+		result := r.Data.(map[string]interface{})
+		var albums []api.Album
+		convertTo(result["albums"], &albums)
+
+		expected := make([]api.Album, 0)
+		userIDString := fmt.Sprint(userId)
+
+		for _, album := range api.Data.Albums {
+			if album.UserID == userIDString {
+				expected = append(expected, album)
+			}
+		}
+
+		Expect(albums).To(ContainElements(expected))
+	}, albumTests)
+
 	It("Get all albums", func() {
 		// Query
 		query := `{albums{id,userid,description}}`
