@@ -8,12 +8,12 @@ import (
 )
 
 var (
-	Users  map[int]User
+	Data   data
 	Schema graphql.Schema
 )
 
 func init() {
-	Users = getUserData()
+	Data = generateData()
 
 	userType := graphql.NewObject(graphql.ObjectConfig{
 		Name:        "User",
@@ -76,7 +76,7 @@ func init() {
 				Type:        graphql.NewList(userType),
 				Description: "All users",
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-					return maps.Values(Users), nil
+					return maps.Values(Data.Users), nil
 				},
 			},
 		},
@@ -88,7 +88,7 @@ func init() {
 }
 
 func getUser(id int) User {
-	if user, ok := Users[id]; ok {
+	if user, ok := Data.Users[id]; ok {
 		return user
 	}
 	return User{}

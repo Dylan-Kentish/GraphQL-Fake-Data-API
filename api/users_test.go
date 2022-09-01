@@ -33,9 +33,9 @@ var _ = Describe("Users", func() {
 		Expect(user).To(Equal(api.User{}))
 	})
 
-	userTests := make([]TableEntry, len(api.Users))
+	userTests := make([]TableEntry, len(api.Data.Users))
 
-	for i, user := range api.Users {
+	for i, user := range api.Data.Users {
 		id, _ := strconv.Atoi(user.ID)
 		userTests[i] = Entry(user.ID, id)
 	}
@@ -51,7 +51,7 @@ var _ = Describe("Users", func() {
 		var user api.User
 		convertTo(result["user"], &user)
 
-		Expect(user).To(Equal(api.Users[id]))
+		Expect(user).To(Equal(api.Data.Users[id]))
 	}, userTests)
 
 	It("Get all users", func() {
@@ -65,7 +65,7 @@ var _ = Describe("Users", func() {
 		var users []api.User
 		convertTo(result["users"], &users)
 
-		Expect(users).To(ContainElements(maps.Values(api.Users)))
+		Expect(users).To(ContainElements(maps.Values(api.Data.Users)))
 	})
 })
 
