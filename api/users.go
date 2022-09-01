@@ -12,14 +12,8 @@ var (
 	UserSchema graphql.Schema
 )
 
-type User struct {
-	ID       string
-	Name     string
-	Username string
-}
-
 func init() {
-	UserData = GetUserData()
+	UserData = getUserData()
 
 	userType := graphql.NewObject(graphql.ObjectConfig{
 		Name:        "User",
@@ -75,7 +69,7 @@ func init() {
 					if err != nil {
 						return nil, err
 					}
-					return GetUser(id), nil
+					return getUser(id), nil
 				},
 			},
 			"users": &graphql.Field{
@@ -93,7 +87,7 @@ func init() {
 	})
 }
 
-func GetUser(id int) User {
+func getUser(id int) User {
 	if user, ok := UserData[id]; ok {
 		return user
 	}
