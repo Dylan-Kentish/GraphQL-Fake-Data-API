@@ -1,12 +1,12 @@
 package api_test
 
 import (
+	"encoding/json"
 	"fmt"
 	"strconv"
 	"testing"
 
 	"github.com/Dylan-Kentish/GraphQLFakeDataAPI/api"
-	"github.com/Dylan-Kentish/GraphQLFakeDataAPI/utils"
 	"github.com/graphql-go/graphql"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -28,7 +28,7 @@ var _ = Describe("Users", func() {
 
 		result := r.Data.(map[string]interface{})
 		var user api.User
-		utils.As(result["user"], &user)
+		convertTo(result["user"], &user)
 
 		Expect(user).To(Equal(api.User{}))
 	})
@@ -49,7 +49,7 @@ var _ = Describe("Users", func() {
 
 		result := r.Data.(map[string]interface{})
 		var user api.User
-		utils.As(result["user"], &user)
+		convertTo(result["user"], &user)
 
 		Expect(user).To(Equal(api.UserData[id]))
 	}, userTests)
@@ -63,8 +63,13 @@ var _ = Describe("Users", func() {
 
 		result := r.Data.(map[string]interface{})
 		var users []api.User
-		utils.As(result["users"], &users)
+		convertTo(result["users"], &users)
 
 		Expect(users).To(ContainElements(maps.Values(api.UserData)))
 	})
 })
+
+func convertTo[T any](in interface{}, out *T) {
+	bytes, _ := json.Marshal(in)
+	json.Unmarshal(bytes, out)
+}
