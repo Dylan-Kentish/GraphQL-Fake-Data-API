@@ -1,7 +1,6 @@
 package internal_test
 
 import (
-	"encoding/json"
 	"testing"
 
 	. "github.com/Dylan-Kentish/GraphQLFakeDataAPI/internal"
@@ -27,9 +26,7 @@ var _ = Describe("Hello World", Label("Main"), func() {
 		r := graphql.Do(params)
 		Expect(r.Errors).To(BeEmpty())
 
-		bJSON, _ := json.Marshal(r.Data)
-		var result map[string]interface{}
-		json.Unmarshal(bJSON, &result)
+		result := r.Data.(map[string]interface{})
 
 		Expect(result["hello"]).To(Equal("world"))
 	})
