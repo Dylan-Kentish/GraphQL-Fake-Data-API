@@ -1,7 +1,6 @@
 package api
 
 import (
-	"fmt"
 	"strconv"
 
 	"github.com/graphql-go/graphql"
@@ -22,15 +21,7 @@ type User struct {
 }
 
 func init() {
-	UserData = make(map[int]User, 0)
-	for i := 0; i < 10; i++ {
-		iString := fmt.Sprint(i)
-		UserData[i] = User{
-			ID:       iString,
-			Name:     "User " + iString,
-			Username: "User" + iString,
-		}
-	}
+	UserData = GetUserData()
 
 	userType = graphql.NewObject(graphql.ObjectConfig{
 		Name:        "User",
