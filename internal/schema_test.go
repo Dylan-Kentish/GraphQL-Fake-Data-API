@@ -9,12 +9,12 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func TestScehema(t *testing.T) {
+func TestSchema(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Scehema tests")
+	RunSpecs(t, "Schema tests")
 }
 
-var _ = Describe("Hello World", Label("Main"), func() {
+var _ = Describe("Hello World", func() {
 	It("Responds to query", func() {
 		// Query
 		query := `
