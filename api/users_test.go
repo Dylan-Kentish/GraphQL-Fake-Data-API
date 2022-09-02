@@ -3,7 +3,6 @@ package api_test
 import (
 	"encoding/json"
 	"fmt"
-	"strconv"
 
 	"github.com/Dylan-Kentish/GraphQLFakeDataAPI/api"
 	"github.com/graphql-go/graphql"
@@ -15,7 +14,7 @@ import (
 var _ = Describe("Users", func() {
 	It("Invalid ID", func() {
 		// Query
-		query := `{user(id:"-1"){id,name,username}}`
+		query := `{user(id:-1){id,name,username}}`
 		params := graphql.Params{Schema: api.Schema, RequestString: query}
 		r := graphql.Do(params)
 		Expect(r.Errors).To(BeEmpty())
@@ -30,13 +29,13 @@ var _ = Describe("Users", func() {
 	userTests := make([]TableEntry, len(api.Data.Users))
 
 	for i, user := range api.Data.Users {
-		id, _ := strconv.Atoi(user.ID)
-		userTests[i] = Entry(user.ID, id)
+		idString := fmt.Sprint(user.ID)
+		userTests[i] = Entry(idString, user.ID)
 	}
 
 	DescribeTable("Get user by ID", func(id int) {
 		// Query
-		query := fmt.Sprintf(`{user(id:"%s"){id,name,username}}`, fmt.Sprint(id))
+		query := fmt.Sprintf(`{user(id:%s){id,name,username}}`, fmt.Sprint(id))
 		params := graphql.Params{Schema: api.Schema, RequestString: query}
 		r := graphql.Do(params)
 		Expect(r.Errors).To(BeEmpty())

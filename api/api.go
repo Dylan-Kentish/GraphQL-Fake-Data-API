@@ -1,9 +1,6 @@
 package api
 
 import (
-	"fmt"
-	"strconv"
-
 	"github.com/graphql-go/graphql"
 	"golang.org/x/exp/maps"
 )
@@ -16,12 +13,49 @@ var (
 func init() {
 	Data = generateData()
 
+	albumType := graphql.NewObject(graphql.ObjectConfig{
+		Name:        "Album",
+		Description: "A album.",
+		Fields: graphql.Fields{
+			"id": &graphql.Field{
+				Type:        graphql.NewNonNull(graphql.Int),
+				Description: "The id of the album.",
+				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+					if user, ok := p.Source.(Album); ok {
+						return user.ID, nil
+					}
+					return nil, nil
+				},
+			},
+			"userid": &graphql.Field{
+				Type:        graphql.NewNonNull(graphql.Int),
+				Description: "The id of the user.",
+				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+					if user, ok := p.Source.(Album); ok {
+						return user.UserID, nil
+					}
+					return nil, nil
+				},
+			},
+			"description": &graphql.Field{
+				Type:        graphql.String,
+				Description: "The description of the album.",
+				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+					if user, ok := p.Source.(Album); ok {
+						return user.Description, nil
+					}
+					return nil, nil
+				},
+			},
+		},
+	})
+
 	userType := graphql.NewObject(graphql.ObjectConfig{
 		Name:        "User",
 		Description: "A user.",
 		Fields: graphql.Fields{
 			"id": &graphql.Field{
-				Type:        graphql.NewNonNull(graphql.String),
+				Type:        graphql.NewNonNull(graphql.Int),
 				Description: "The id of the user.",
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 					if user, ok := p.Source.(User); ok {
@@ -53,43 +87,6 @@ func init() {
 		},
 	})
 
-	albumType := graphql.NewObject(graphql.ObjectConfig{
-		Name:        "Album",
-		Description: "A album.",
-		Fields: graphql.Fields{
-			"id": &graphql.Field{
-				Type:        graphql.NewNonNull(graphql.String),
-				Description: "The id of the album.",
-				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-					if user, ok := p.Source.(Album); ok {
-						return user.ID, nil
-					}
-					return nil, nil
-				},
-			},
-			"userid": &graphql.Field{
-				Type:        graphql.NewNonNull(graphql.String),
-				Description: "The id of the user.",
-				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-					if user, ok := p.Source.(Album); ok {
-						return user.UserID, nil
-					}
-					return nil, nil
-				},
-			},
-			"description": &graphql.Field{
-				Type:        graphql.String,
-				Description: "The description of the album.",
-				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-					if user, ok := p.Source.(Album); ok {
-						return user.Description, nil
-					}
-					return nil, nil
-				},
-			},
-		},
-	})
-
 	queryType := graphql.NewObject(graphql.ObjectConfig{
 		Name: "Query",
 		Fields: graphql.Fields{
@@ -99,15 +96,11 @@ func init() {
 				Args: graphql.FieldConfigArgument{
 					"id": &graphql.ArgumentConfig{
 						Description: "id of the user",
-						Type:        graphql.NewNonNull(graphql.String),
+						Type:        graphql.NewNonNull(graphql.Int),
 					},
 				},
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-					id, err := strconv.Atoi(p.Args["id"].(string))
-					if err != nil {
-						return nil, err
-					}
-					return getUser(id), nil
+					return getUser(p.Args["id"].(int)), nil
 				},
 			},
 			"users": &graphql.Field{
@@ -123,15 +116,11 @@ func init() {
 				Args: graphql.FieldConfigArgument{
 					"id": &graphql.ArgumentConfig{
 						Description: "id of the album",
-						Type:        graphql.NewNonNull(graphql.String),
+						Type:        graphql.NewNonNull(graphql.Int),
 					},
 				},
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-					id, err := strconv.Atoi(p.Args["id"].(string))
-					if err != nil {
-						return nil, err
-					}
-					return getAlbum(id), nil
+					return getAlbum(p.Args["id"].(int)), nil
 				},
 			},
 			"albums": &graphql.Field{
@@ -140,16 +129,12 @@ func init() {
 				Args: graphql.FieldConfigArgument{
 					"userid": &graphql.ArgumentConfig{
 						Description: "id of the user",
-						Type:        graphql.String,
+						Type:        graphql.Int,
 					},
 				},
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-					if idInterface, exists := p.Args["userid"]; exists {
-						id, err := strconv.Atoi(idInterface.(string))
-						if err == nil {
-							return getAlbumsByUserID(id), nil
-						}
-						return nil, err
+					if id, exists := p.Args["userid"].(int); exists {
+						return getAlbumsByUserID(id), nil
 					}
 
 					return maps.Values(Data.Albums), nil
@@ -179,10 +164,9 @@ func getAlbum(id int) Album {
 
 func getAlbumsByUserID(userID int) []Album {
 	albums := make([]Album, 0)
-	userIDString := fmt.Sprint(userID)
 
 	for _, album := range Data.Albums {
-		if album.UserID == userIDString {
+		if album.UserID == userID {
 			albums = append(albums, album)
 		}
 	}
