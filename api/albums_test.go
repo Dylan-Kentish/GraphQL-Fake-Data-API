@@ -11,10 +11,25 @@ import (
 )
 
 var _ = Describe("Albums", func() {
+	data := api.NewData()
+	testApi := api.NewAPI(data)
+
+	albumTests := make([]TableEntry, len(data.Albums))
+	for i, album := range data.Albums {
+		idString := fmt.Sprint(album.ID)
+		albumTests[i] = Entry(idString, album.ID)
+	}
+
+	userTests := make([]TableEntry, len(data.Users))
+	for i, user := range data.Users {
+		idString := fmt.Sprint(user.ID)
+		userTests[i] = Entry(idString, user.ID)
+	}
+
 	It("Invalid ID", func() {
 		// Query
 		query := `{album(id:-1){id,userid,description}}`
-		params := graphql.Params{Schema: api.Schema, RequestString: query}
+		params := graphql.Params{Schema: testApi.Schema, RequestString: query}
 		r := graphql.Do(params)
 		Expect(r.Errors).To(BeEmpty())
 
@@ -25,17 +40,10 @@ var _ = Describe("Albums", func() {
 		Expect(album).To(Equal(api.Album{}))
 	})
 
-	albumTests := make([]TableEntry, len(api.Data.Albums))
-
-	for i, album := range api.Data.Albums {
-		idString := fmt.Sprint(album.ID)
-		albumTests[i] = Entry(idString, album.ID)
-	}
-
 	DescribeTable("Get album by ID", func(id int) {
 		// Query
-		query := fmt.Sprintf(`{album(id:%s){id,userid,description}}`, fmt.Sprint(id))
-		params := graphql.Params{Schema: api.Schema, RequestString: query}
+		query := fmt.Sprintf(`{album(id:%v){id,userid,description}}`, id)
+		params := graphql.Params{Schema: testApi.Schema, RequestString: query}
 		r := graphql.Do(params)
 		Expect(r.Errors).To(BeEmpty())
 
@@ -43,20 +51,13 @@ var _ = Describe("Albums", func() {
 		var album api.Album
 		convertTo(result["album"], &album)
 
-		Expect(album).To(Equal(api.Data.Albums[id]))
+		Expect(album).To(Equal(data.Albums[id]))
 	}, albumTests)
-
-	userTests := make([]TableEntry, len(api.Data.Users))
-
-	for i, user := range api.Data.Users {
-		idString := fmt.Sprint(user.ID)
-		userTests[i] = Entry(idString, user.ID)
-	}
 
 	DescribeTable("Get album by userID", func(userId int) {
 		// Query
 		query := fmt.Sprintf(`{albums(userid:%v){id,userid,description}}`, userId)
-		params := graphql.Params{Schema: api.Schema, RequestString: query}
+		params := graphql.Params{Schema: testApi.Schema, RequestString: query}
 		r := graphql.Do(params)
 		Expect(r.Errors).To(BeEmpty())
 
@@ -66,7 +67,7 @@ var _ = Describe("Albums", func() {
 
 		expected := make([]api.Album, 0)
 
-		for _, album := range api.Data.Albums {
+		for _, album := range data.Albums {
 			if album.UserID == userId {
 				expected = append(expected, album)
 			}
@@ -78,7 +79,7 @@ var _ = Describe("Albums", func() {
 	It("Get all albums", func() {
 		// Query
 		query := `{albums{id,userid,description}}`
-		params := graphql.Params{Schema: api.Schema, RequestString: query}
+		params := graphql.Params{Schema: testApi.Schema, RequestString: query}
 		r := graphql.Do(params)
 		Expect(r.Errors).To(BeEmpty())
 
@@ -86,14 +87,14 @@ var _ = Describe("Albums", func() {
 		var albums []api.Album
 		convertTo(result["albums"], &albums)
 
-		Expect(albums).To(ContainElements(maps.Values(api.Data.Albums)))
+		Expect(albums).To(ContainElements(maps.Values(data.Albums)))
 	})
 
 	It("Get limited albums", func() {
 		limit := 5
 		// Query
 		query := fmt.Sprintf(`{albums(limit:%v){id,userid,description}}`, limit)
-		params := graphql.Params{Schema: api.Schema, RequestString: query}
+		params := graphql.Params{Schema: testApi.Schema, RequestString: query}
 		r := graphql.Do(params)
 		Expect(r.Errors).To(BeEmpty())
 
@@ -102,5 +103,43 @@ var _ = Describe("Albums", func() {
 		convertTo(result["albums"], &albums)
 
 		Expect(albums).To(HaveLen(limit))
+	})
+
+	Context("Bad Schema", func() {
+		badQuery := graphql.NewObject(graphql.ObjectConfig{
+			Name: "Query",
+			Fields: graphql.Fields{
+				"album": &graphql.Field{
+					Type:        testApi.AlbumType,
+					Description: "Album by ID",
+					Args: graphql.FieldConfigArgument{
+						"id": &graphql.ArgumentConfig{
+							Description: "id of the album",
+							Type:        graphql.NewNonNull(graphql.Int),
+						},
+					},
+					Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+						// Wrong type
+						return api.User{}, nil
+					},
+				},
+			},
+		})
+
+		badSchema, _ := graphql.NewSchema(graphql.SchemaConfig{
+			Query: badQuery,
+		})
+
+		DescribeTable("Reterns err when resolving fields", func(field string) {
+			// Query
+			query := fmt.Sprintf(`{album(id:0){%s}}`, field)
+			params := graphql.Params{Schema: badSchema, RequestString: query}
+			r := graphql.Do(params)
+			Expect(r.Errors).To(HaveLen(1))
+			Expect(r.Errors[0].Message).To(Equal("source is not a api.Album"))
+		},
+			Entry("id", "id"),
+			Entry("userid", "userid"),
+			Entry("description", "description"))
 	})
 })
