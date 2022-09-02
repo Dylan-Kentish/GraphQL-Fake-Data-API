@@ -109,4 +109,44 @@ var _ = Describe("Albums", func() {
 
 		Expect(albums).To(HaveLen(limit))
 	})
+
+	Context("Bad Schema", func() {
+		BeforeEach(func() {
+			queryType := graphql.NewObject(graphql.ObjectConfig{
+				Name: "Query",
+				Fields: graphql.Fields{
+					"album": &graphql.Field{
+						Type:        testApi.AlbumType,
+						Description: "Album by ID",
+						Args: graphql.FieldConfigArgument{
+							"id": &graphql.ArgumentConfig{
+								Description: "id of the album",
+								Type:        graphql.NewNonNull(graphql.Int),
+							},
+						},
+						Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+							// Wrong type
+							return api.User{}, nil
+						},
+					},
+				},
+			})
+
+			testApi.Schema, _ = graphql.NewSchema(graphql.SchemaConfig{
+				Query: queryType,
+			})
+		})
+
+		DescribeTable("Reterns err when resolving fields", func(field string) {
+			// Query
+			query := fmt.Sprintf(`{album(id:0){%s}}`, field)
+			params := graphql.Params{Schema: testApi.Schema, RequestString: query}
+			r := graphql.Do(params)
+			Expect(r.Errors).To(HaveLen(1))
+			Expect(r.Errors[0].Message).To(Equal("source is not a api.Album"))
+		},
+			Entry("id", "id"),
+			Entry("userid", "userid"),
+			Entry("description", "description"))
+	})
 })

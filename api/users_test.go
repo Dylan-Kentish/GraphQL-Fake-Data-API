@@ -41,7 +41,7 @@ var _ = Describe("Users", func() {
 
 	DescribeTable("Get user by ID", func(id int) {
 		// Query
-		query := fmt.Sprintf(`{user(id:%s){id,name,username}}`, fmt.Sprint(id))
+		query := fmt.Sprintf(`{user(id:%v){id,name,username}}`, id)
 		params := graphql.Params{Schema: testApi.Schema, RequestString: query}
 		r := graphql.Do(params)
 		Expect(r.Errors).To(BeEmpty())
@@ -101,6 +101,62 @@ var _ = Describe("Users", func() {
 		convertTo(result["users"], &users)
 
 		Expect(users).To(HaveLen(limit))
+	})
+
+	Context("Bad Schema", func() {
+		BeforeEach(func() {
+			queryType := graphql.NewObject(graphql.ObjectConfig{
+				Name: "Query",
+				Fields: graphql.Fields{
+					"user": &graphql.Field{
+						Type:        testApi.UserType,
+						Description: "User by ID",
+						Args: graphql.FieldConfigArgument{
+							"id": &graphql.ArgumentConfig{
+								Description: "id of the user",
+								Type:        graphql.NewNonNull(graphql.Int),
+							},
+						},
+						Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+							// Wrong type
+							return api.Album{}, nil
+						},
+					},
+					"users": &graphql.Field{
+						Type:        graphql.NewList(testApi.UserType),
+						Description: "All users",
+						Args: graphql.FieldConfigArgument{
+							"limit": &graphql.ArgumentConfig{
+								Description: "limit the number of users",
+								Type:        graphql.Int,
+							},
+						},
+						Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+							// Wrong type
+							albums := make([]api.Album, 0)
+							return albums, nil
+						},
+					},
+				},
+			})
+
+			testApi.Schema, _ = graphql.NewSchema(graphql.SchemaConfig{
+				Query: queryType,
+			})
+		})
+
+		DescribeTable("Reterns err when resolving fields", func(field string) {
+			// Query
+			query := fmt.Sprintf(`{user(id:0){%s}}`, field)
+			params := graphql.Params{Schema: testApi.Schema, RequestString: query}
+			r := graphql.Do(params)
+			Expect(r.Errors).To(HaveLen(1))
+			Expect(r.Errors[0].Message).To(Equal("source is not a api.User"))
+		},
+			Entry("id", "id"),
+			Entry("name", "name"),
+			Entry("username", "username"),
+			Entry("albums", "albums{id}"))
 	})
 })
 

@@ -1,14 +1,17 @@
 package api
 
 import (
+	"errors"
+
 	"github.com/graphql-go/graphql"
 	"golang.org/x/exp/maps"
 )
 
 type API struct {
-	Data     *data
-	Schema   graphql.Schema
-	UserType *graphql.Object
+	Data      *data
+	Schema    graphql.Schema
+	UserType  *graphql.Object
+	AlbumType *graphql.Object
 }
 
 func NewAPI() *API {
@@ -25,7 +28,7 @@ func NewAPI() *API {
 					if album, ok := p.Source.(Album); ok {
 						return album.ID, nil
 					}
-					return nil, nil
+					return nil, errors.New("source is not a api.Album")
 				},
 			},
 			"userid": &graphql.Field{
@@ -35,7 +38,7 @@ func NewAPI() *API {
 					if album, ok := p.Source.(Album); ok {
 						return album.UserID, nil
 					}
-					return nil, nil
+					return nil, errors.New("source is not a api.Album")
 				},
 			},
 			"description": &graphql.Field{
@@ -45,7 +48,7 @@ func NewAPI() *API {
 					if album, ok := p.Source.(Album); ok {
 						return album.Description, nil
 					}
-					return nil, nil
+					return nil, errors.New("source is not a api.Album")
 				},
 			},
 		},
@@ -62,7 +65,7 @@ func NewAPI() *API {
 					if user, ok := p.Source.(User); ok {
 						return user.ID, nil
 					}
-					return nil, nil
+					return nil, errors.New("source is not a api.User")
 				},
 			},
 			"name": &graphql.Field{
@@ -72,7 +75,7 @@ func NewAPI() *API {
 					if user, ok := p.Source.(User); ok {
 						return user.Name, nil
 					}
-					return nil, nil
+					return nil, errors.New("source is not a api.User")
 				},
 			},
 			"username": &graphql.Field{
@@ -82,7 +85,7 @@ func NewAPI() *API {
 					if user, ok := p.Source.(User); ok {
 						return user.Username, nil
 					}
-					return nil, nil
+					return nil, errors.New("source is not a api.User")
 				},
 			},
 			"albums": &graphql.Field{
@@ -92,7 +95,7 @@ func NewAPI() *API {
 					if user, ok := p.Source.(User); ok {
 						return data.getAlbumsByUserID(user.ID), nil
 					}
-					return nil, nil
+					return nil, errors.New("source is not a api.User")
 				},
 			},
 		},
@@ -183,8 +186,9 @@ func NewAPI() *API {
 	})
 
 	return &API{
-		Data:     data,
-		Schema:   schema,
-		UserType: userType,
+		Data:      data,
+		Schema:    schema,
+		UserType:  userType,
+		AlbumType: albumType,
 	}
 }
