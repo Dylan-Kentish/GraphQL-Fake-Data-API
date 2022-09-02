@@ -8,15 +8,12 @@ import (
 )
 
 type API struct {
-	Data      *data
 	Schema    graphql.Schema
 	UserType  *graphql.Object
 	AlbumType *graphql.Object
 }
 
-func NewAPI() *API {
-	data := newData()
-
+func NewAPI(data *data) *API {
 	albumType := graphql.NewObject(graphql.ObjectConfig{
 		Name:        "Album",
 		Description: "A album.",
@@ -186,7 +183,6 @@ func NewAPI() *API {
 	})
 
 	return &API{
-		Data:      data,
 		Schema:    schema,
 		UserType:  userType,
 		AlbumType: albumType,

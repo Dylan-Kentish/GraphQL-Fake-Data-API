@@ -29,6 +29,14 @@ type Album struct {
 	Description string
 }
 
+func NewData() *data {
+	users := getUserData()
+	return &data{
+		Users:  users,
+		Albums: getAlbums(maps.Keys(users)),
+	}
+}
+
 func (data *data) getUser(id int) User {
 	if user, ok := data.Users[id]; ok {
 		return user
@@ -53,14 +61,6 @@ func (data *data) getAlbumsByUserID(userID int) []Album {
 	}
 
 	return albums
-}
-
-func newData() *data {
-	users := getUserData()
-	return &data{
-		Users:  users,
-		Albums: getAlbums(maps.Keys(users)),
-	}
 }
 
 func getUserData() map[int]User {

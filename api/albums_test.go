@@ -11,16 +11,17 @@ import (
 )
 
 var _ = Describe("Albums", func() {
-	testApi := api.NewAPI()
+	data := api.NewData()
+	testApi := api.NewAPI(data)
 
-	albumTests := make([]TableEntry, len(testApi.Data.Albums))
-	for i, album := range testApi.Data.Albums {
+	albumTests := make([]TableEntry, len(data.Albums))
+	for i, album := range data.Albums {
 		idString := fmt.Sprint(album.ID)
 		albumTests[i] = Entry(idString, album.ID)
 	}
 
-	userTests := make([]TableEntry, len(testApi.Data.Users))
-	for i, user := range testApi.Data.Users {
+	userTests := make([]TableEntry, len(data.Users))
+	for i, user := range data.Users {
 		idString := fmt.Sprint(user.ID)
 		userTests[i] = Entry(idString, user.ID)
 	}
@@ -50,7 +51,7 @@ var _ = Describe("Albums", func() {
 		var album api.Album
 		convertTo(result["album"], &album)
 
-		Expect(album).To(Equal(testApi.Data.Albums[id]))
+		Expect(album).To(Equal(data.Albums[id]))
 	}, albumTests)
 
 	DescribeTable("Get album by userID", func(userId int) {
@@ -66,7 +67,7 @@ var _ = Describe("Albums", func() {
 
 		expected := make([]api.Album, 0)
 
-		for _, album := range testApi.Data.Albums {
+		for _, album := range data.Albums {
 			if album.UserID == userId {
 				expected = append(expected, album)
 			}
@@ -86,7 +87,7 @@ var _ = Describe("Albums", func() {
 		var albums []api.Album
 		convertTo(result["albums"], &albums)
 
-		Expect(albums).To(ContainElements(maps.Values(testApi.Data.Albums)))
+		Expect(albums).To(ContainElements(maps.Values(data.Albums)))
 	})
 
 	It("Get limited albums", func() {
