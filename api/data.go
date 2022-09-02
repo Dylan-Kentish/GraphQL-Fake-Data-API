@@ -29,9 +29,35 @@ type Album struct {
 	Description string
 }
 
-func generateData() data {
+func (data *data) getUser(id int) User {
+	if user, ok := data.Users[id]; ok {
+		return user
+	}
+	return User{}
+}
+
+func (data *data) getAlbum(id int) Album {
+	if album, ok := data.Albums[id]; ok {
+		return album
+	}
+	return Album{}
+}
+
+func (data *data) getAlbumsByUserID(userID int) []Album {
+	albums := make([]Album, 0)
+
+	for _, album := range data.Albums {
+		if album.UserID == userID {
+			albums = append(albums, album)
+		}
+	}
+
+	return albums
+}
+
+func newData() *data {
 	users := getUserData()
-	return data{
+	return &data{
 		Users:  users,
 		Albums: getAlbums(maps.Keys(users)),
 	}

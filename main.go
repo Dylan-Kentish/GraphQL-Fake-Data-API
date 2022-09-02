@@ -9,6 +9,8 @@ import (
 )
 
 func main() {
+	api := api.NewAPI()
+
 	h := handler.New(&handler.Config{
 		Schema:   &api.Schema,
 		Pretty:   true,

@@ -5,13 +5,14 @@ import (
 	"golang.org/x/exp/maps"
 )
 
-var (
-	Data   data
-	Schema graphql.Schema
-)
+type API struct {
+	Data     *data
+	Schema   graphql.Schema
+	UserType *graphql.Object
+}
 
-func init() {
-	Data = generateData()
+func NewAPI() *API {
+	data := newData()
 
 	albumType := graphql.NewObject(graphql.ObjectConfig{
 		Name:        "Album",
@@ -21,8 +22,8 @@ func init() {
 				Type:        graphql.NewNonNull(graphql.Int),
 				Description: "The id of the album.",
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-					if user, ok := p.Source.(Album); ok {
-						return user.ID, nil
+					if album, ok := p.Source.(Album); ok {
+						return album.ID, nil
 					}
 					return nil, nil
 				},
@@ -31,8 +32,8 @@ func init() {
 				Type:        graphql.NewNonNull(graphql.Int),
 				Description: "The id of the user.",
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-					if user, ok := p.Source.(Album); ok {
-						return user.UserID, nil
+					if album, ok := p.Source.(Album); ok {
+						return album.UserID, nil
 					}
 					return nil, nil
 				},
@@ -41,8 +42,8 @@ func init() {
 				Type:        graphql.String,
 				Description: "The description of the album.",
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-					if user, ok := p.Source.(Album); ok {
-						return user.Description, nil
+					if album, ok := p.Source.(Album); ok {
+						return album.Description, nil
 					}
 					return nil, nil
 				},
@@ -89,7 +90,7 @@ func init() {
 				Description: "The users albums.",
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 					if user, ok := p.Source.(User); ok {
-						return getAlbumsByUserID(user.ID), nil
+						return data.getAlbumsByUserID(user.ID), nil
 					}
 					return nil, nil
 				},
@@ -110,7 +111,7 @@ func init() {
 					},
 				},
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-					return getUser(p.Args["id"].(int)), nil
+					return data.getUser(p.Args["id"].(int)), nil
 				},
 			},
 			"users": &graphql.Field{
@@ -123,7 +124,7 @@ func init() {
 					},
 				},
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-					albums := maps.Values(Data.Users)
+					albums := maps.Values(data.Users)
 					if limit, exists := p.Args["limit"].(int); exists {
 						return albums[:limit], nil
 					} else {
@@ -141,7 +142,7 @@ func init() {
 					},
 				},
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-					return getAlbum(p.Args["id"].(int)), nil
+					return data.getAlbum(p.Args["id"].(int)), nil
 				},
 			},
 			"albums": &graphql.Field{
@@ -162,9 +163,9 @@ func init() {
 					var albums []Album
 
 					if id, exists := p.Args["userid"].(int); exists {
-						albums = getAlbumsByUserID(id)
+						albums = data.getAlbumsByUserID(id)
 					} else {
-						albums = maps.Values(Data.Albums)
+						albums = maps.Values(data.Albums)
 					}
 
 					if limit, exists := p.Args["limit"].(int); exists {
@@ -177,33 +178,13 @@ func init() {
 		},
 	})
 
-	Schema, _ = graphql.NewSchema(graphql.SchemaConfig{
+	schema, _ := graphql.NewSchema(graphql.SchemaConfig{
 		Query: queryType,
 	})
-}
 
-func getUser(id int) User {
-	if user, ok := Data.Users[id]; ok {
-		return user
+	return &API{
+		Data:     data,
+		Schema:   schema,
+		UserType: userType,
 	}
-	return User{}
-}
-
-func getAlbum(id int) Album {
-	if album, ok := Data.Albums[id]; ok {
-		return album
-	}
-	return Album{}
-}
-
-func getAlbumsByUserID(userID int) []Album {
-	albums := make([]Album, 0)
-
-	for _, album := range Data.Albums {
-		if album.UserID == userID {
-			albums = append(albums, album)
-		}
-	}
-
-	return albums
 }
