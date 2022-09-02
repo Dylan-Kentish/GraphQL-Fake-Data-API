@@ -62,7 +62,7 @@ var _ = Describe("Users", func() {
 	})
 
 	DescribeTable("Get user albums", func(id int) {
-		query := fmt.Sprintf(`{user(userid:%s){id,albums}}`, fmt.Sprint(id))
+		query := fmt.Sprintf(`{user(id:%v){id,albums{id,userid,description}}}`, id)
 		params := graphql.Params{Schema: api.Schema, RequestString: query}
 		r := graphql.Do(params)
 		Expect(r.Errors).To(BeEmpty())
@@ -80,7 +80,7 @@ var _ = Describe("Users", func() {
 		}
 
 		Expect(user.Albums).To(ContainElements(expected))
-	})
+	}, userTests)
 
 	It("Get limited users", func() {
 		limit := 5
