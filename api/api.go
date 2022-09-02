@@ -84,6 +84,16 @@ func init() {
 					return nil, nil
 				},
 			},
+			"albums": &graphql.Field{
+				Type:        graphql.NewList(albumType),
+				Description: "The users albums.",
+				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+					if user, ok := p.Source.(User); ok {
+						return getAlbumsByUserID(user.ID), nil
+					}
+					return nil, nil
+				},
+			},
 		},
 	})
 
@@ -106,8 +116,19 @@ func init() {
 			"users": &graphql.Field{
 				Type:        graphql.NewList(userType),
 				Description: "All users",
+				Args: graphql.FieldConfigArgument{
+					"limit": &graphql.ArgumentConfig{
+						Description: "limit the number of users",
+						Type:        graphql.Int,
+					},
+				},
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-					return maps.Values(Data.Users), nil
+					albums := maps.Values(Data.Users)
+					if limit, exists := p.Args["limit"].(int); exists {
+						return albums[:limit], nil
+					} else {
+						return albums, nil
+					}
 				},
 			},
 			"album": &graphql.Field{
@@ -131,13 +152,26 @@ func init() {
 						Description: "id of the user",
 						Type:        graphql.Int,
 					},
+					"limit": &graphql.ArgumentConfig{
+						Description: "limit the number of albums",
+						Type:        graphql.Int,
+					},
 				},
+
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+					var albums []Album
+
 					if id, exists := p.Args["userid"].(int); exists {
-						return getAlbumsByUserID(id), nil
+						albums = getAlbumsByUserID(id)
+					} else {
+						albums = maps.Values(Data.Albums)
 					}
 
-					return maps.Values(Data.Albums), nil
+					if limit, exists := p.Args["limit"].(int); exists {
+						return albums[:limit], nil
+					} else {
+						return albums, nil
+					}
 				},
 			},
 		},

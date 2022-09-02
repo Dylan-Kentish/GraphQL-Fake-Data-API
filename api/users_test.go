@@ -60,6 +60,42 @@ var _ = Describe("Users", func() {
 
 		Expect(users).To(ContainElements(maps.Values(api.Data.Users)))
 	})
+
+	DescribeTable("Get user albums", func(id int) {
+		query := fmt.Sprintf(`{user(userid:%s){id,albums}}`, fmt.Sprint(id))
+		params := graphql.Params{Schema: api.Schema, RequestString: query}
+		r := graphql.Do(params)
+		Expect(r.Errors).To(BeEmpty())
+
+		result := r.Data.(map[string]interface{})
+		var user api.User
+		convertTo(result["user"], &user)
+
+		expected := make([]api.Album, 0)
+
+		for _, album := range api.Data.Albums {
+			if album.UserID == id {
+				expected = append(expected, album)
+			}
+		}
+
+		Expect(user.Albums).To(ContainElements(expected))
+	})
+
+	It("Get limited users", func() {
+		limit := 5
+		// Query
+		query := fmt.Sprintf(`{users(limit:%v){id,name,username}}`, limit)
+		params := graphql.Params{Schema: api.Schema, RequestString: query}
+		r := graphql.Do(params)
+		Expect(r.Errors).To(BeEmpty())
+
+		result := r.Data.(map[string]interface{})
+		var users []api.User
+		convertTo(result["users"], &users)
+
+		Expect(users).To(HaveLen(limit))
+	})
 })
 
 func convertTo[T any](in interface{}, out *T) {

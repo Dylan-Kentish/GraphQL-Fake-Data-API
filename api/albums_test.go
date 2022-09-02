@@ -88,4 +88,19 @@ var _ = Describe("Albums", func() {
 
 		Expect(albums).To(ContainElements(maps.Values(api.Data.Albums)))
 	})
+
+	It("Get limited albums", func() {
+		limit := 5
+		// Query
+		query := fmt.Sprintf(`{albums(limit:%v){id,userid,description}}`, limit)
+		params := graphql.Params{Schema: api.Schema, RequestString: query}
+		r := graphql.Do(params)
+		Expect(r.Errors).To(BeEmpty())
+
+		result := r.Data.(map[string]interface{})
+		var albums []api.Album
+		convertTo(result["albums"], &albums)
+
+		Expect(albums).To(HaveLen(limit))
+	})
 })
