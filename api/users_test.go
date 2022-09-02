@@ -12,18 +12,13 @@ import (
 )
 
 var _ = Describe("Users", func() {
-	var testApi *api.API
-	var userTests []TableEntry
+	testApi := api.NewAPI()
 
-	BeforeEach(func() {
-		testApi = api.NewAPI()
-
-		userTests = make([]TableEntry, len(testApi.Data.Users))
-		for i, user := range testApi.Data.Users {
-			idString := fmt.Sprint(user.ID)
-			userTests[i] = Entry(idString, user.ID)
-		}
-	})
+	userTests := make([]TableEntry, len(testApi.Data.Users))
+	for i, user := range testApi.Data.Users {
+		idString := fmt.Sprint(user.ID)
+		userTests[i] = Entry(idString, user.ID)
+	}
 
 	It("Invalid ID", func() {
 		// Query
@@ -104,51 +99,49 @@ var _ = Describe("Users", func() {
 	})
 
 	Context("Bad Schema", func() {
-		BeforeEach(func() {
-			queryType := graphql.NewObject(graphql.ObjectConfig{
-				Name: "Query",
-				Fields: graphql.Fields{
-					"user": &graphql.Field{
-						Type:        testApi.UserType,
-						Description: "User by ID",
-						Args: graphql.FieldConfigArgument{
-							"id": &graphql.ArgumentConfig{
-								Description: "id of the user",
-								Type:        graphql.NewNonNull(graphql.Int),
-							},
-						},
-						Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-							// Wrong type
-							return api.Album{}, nil
+		badQuery := graphql.NewObject(graphql.ObjectConfig{
+			Name: "Query",
+			Fields: graphql.Fields{
+				"user": &graphql.Field{
+					Type:        testApi.UserType,
+					Description: "User by ID",
+					Args: graphql.FieldConfigArgument{
+						"id": &graphql.ArgumentConfig{
+							Description: "id of the user",
+							Type:        graphql.NewNonNull(graphql.Int),
 						},
 					},
-					"users": &graphql.Field{
-						Type:        graphql.NewList(testApi.UserType),
-						Description: "All users",
-						Args: graphql.FieldConfigArgument{
-							"limit": &graphql.ArgumentConfig{
-								Description: "limit the number of users",
-								Type:        graphql.Int,
-							},
-						},
-						Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-							// Wrong type
-							albums := make([]api.Album, 0)
-							return albums, nil
-						},
+					Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+						// Wrong type
+						return api.Album{}, nil
 					},
 				},
-			})
+				"users": &graphql.Field{
+					Type:        graphql.NewList(testApi.UserType),
+					Description: "All users",
+					Args: graphql.FieldConfigArgument{
+						"limit": &graphql.ArgumentConfig{
+							Description: "limit the number of users",
+							Type:        graphql.Int,
+						},
+					},
+					Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+						// Wrong type
+						albums := make([]api.Album, 0)
+						return albums, nil
+					},
+				},
+			},
+		})
 
-			testApi.Schema, _ = graphql.NewSchema(graphql.SchemaConfig{
-				Query: queryType,
-			})
+		badSchema, _ := graphql.NewSchema(graphql.SchemaConfig{
+			Query: badQuery,
 		})
 
 		DescribeTable("Reterns err when resolving fields", func(field string) {
 			// Query
 			query := fmt.Sprintf(`{user(id:0){%s}}`, field)
-			params := graphql.Params{Schema: testApi.Schema, RequestString: query}
+			params := graphql.Params{Schema: badSchema, RequestString: query}
 			r := graphql.Do(params)
 			Expect(r.Errors).To(HaveLen(1))
 			Expect(r.Errors[0].Message).To(Equal("source is not a api.User"))
