@@ -2,7 +2,6 @@ package api_test
 
 import (
 	"fmt"
-	"strconv"
 
 	"github.com/Dylan-Kentish/GraphQLFakeDataAPI/api"
 	"github.com/graphql-go/graphql"
@@ -14,7 +13,7 @@ import (
 var _ = Describe("Albums", func() {
 	It("Invalid ID", func() {
 		// Query
-		query := `{album(id:"-1"){id,userid,description}}`
+		query := `{album(id:-1){id,userid,description}}`
 		params := graphql.Params{Schema: api.Schema, RequestString: query}
 		r := graphql.Do(params)
 		Expect(r.Errors).To(BeEmpty())
@@ -29,13 +28,13 @@ var _ = Describe("Albums", func() {
 	albumTests := make([]TableEntry, len(api.Data.Albums))
 
 	for i, album := range api.Data.Albums {
-		id, _ := strconv.Atoi(album.ID)
-		albumTests[i] = Entry(album.ID, id)
+		idString := fmt.Sprint(album.ID)
+		albumTests[i] = Entry(idString, album.ID)
 	}
 
 	DescribeTable("Get album by ID", func(id int) {
 		// Query
-		query := fmt.Sprintf(`{album(id:"%s"){id,userid,description}}`, fmt.Sprint(id))
+		query := fmt.Sprintf(`{album(id:%s){id,userid,description}}`, fmt.Sprint(id))
 		params := graphql.Params{Schema: api.Schema, RequestString: query}
 		r := graphql.Do(params)
 		Expect(r.Errors).To(BeEmpty())
@@ -50,13 +49,13 @@ var _ = Describe("Albums", func() {
 	userTests := make([]TableEntry, len(api.Data.Users))
 
 	for i, user := range api.Data.Users {
-		id, _ := strconv.Atoi(user.ID)
-		userTests[i] = Entry(user.ID, id)
+		idString := fmt.Sprint(user.ID)
+		userTests[i] = Entry(idString, user.ID)
 	}
 
 	DescribeTable("Get album by userID", func(userId int) {
 		// Query
-		query := fmt.Sprintf(`{albums(userid:"%s"){id,userid,description}}`, fmt.Sprint(userId))
+		query := fmt.Sprintf(`{albums(userid:%v){id,userid,description}}`, userId)
 		params := graphql.Params{Schema: api.Schema, RequestString: query}
 		r := graphql.Do(params)
 		Expect(r.Errors).To(BeEmpty())
@@ -66,16 +65,15 @@ var _ = Describe("Albums", func() {
 		convertTo(result["albums"], &albums)
 
 		expected := make([]api.Album, 0)
-		userIDString := fmt.Sprint(userId)
 
 		for _, album := range api.Data.Albums {
-			if album.UserID == userIDString {
+			if album.UserID == userId {
 				expected = append(expected, album)
 			}
 		}
 
 		Expect(albums).To(ContainElements(expected))
-	}, albumTests)
+	}, userTests)
 
 	It("Get all albums", func() {
 		// Query
@@ -89,5 +87,20 @@ var _ = Describe("Albums", func() {
 		convertTo(result["albums"], &albums)
 
 		Expect(albums).To(ContainElements(maps.Values(api.Data.Albums)))
+	})
+
+	It("Get limited albums", func() {
+		limit := 5
+		// Query
+		query := fmt.Sprintf(`{albums(limit:%v){id,userid,description}}`, limit)
+		params := graphql.Params{Schema: api.Schema, RequestString: query}
+		r := graphql.Do(params)
+		Expect(r.Errors).To(BeEmpty())
+
+		result := r.Data.(map[string]interface{})
+		var albums []api.Album
+		convertTo(result["albums"], &albums)
+
+		Expect(albums).To(HaveLen(limit))
 	})
 })

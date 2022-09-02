@@ -17,14 +17,15 @@ type data struct {
 }
 
 type User struct {
-	ID       string
+	ID       int
 	Name     string
 	Username string
+	Albums   []Album
 }
 
 type Album struct {
-	ID          string
-	UserID      string
+	ID          int
+	UserID      int
 	Description string
 }
 
@@ -41,7 +42,7 @@ func getUserData() map[int]User {
 	for i := 0; i < numberOfUsers; i++ {
 		iString := fmt.Sprint(i)
 		users[i] = User{
-			ID:       iString,
+			ID:       i,
 			Name:     "User " + iString,
 			Username: "User" + iString,
 		}
@@ -54,15 +55,14 @@ func getAlbums(userIDs []int) map[int]Album {
 	albums := make(map[int]Album, len(userIDs)*numberOfUserAlbums)
 
 	for _, userID := range userIDs {
-		userIDString := fmt.Sprint(userID)
 		startIndex := userID * numberOfUserAlbums
 		endIndex := (userID + 1) * numberOfUserAlbums
 		for i := startIndex; i < endIndex; i++ {
 			iString := fmt.Sprint(i)
 			albums[i] = Album{
-				ID:          iString,
-				UserID:      userIDString,
-				Description: "An Album",
+				ID:          i,
+				UserID:      userID,
+				Description: "Album " + iString,
 			}
 		}
 	}
