@@ -26,7 +26,7 @@ func NewAPI(dataModel data.IData) *API {
 					if album, ok := p.Source.(data.Photo); ok {
 						return album.ID, nil
 					}
-					return nil, errors.New("source is not a api.Photo")
+					return nil, errors.New("source is not a Photo")
 				},
 			},
 			"albumid": &graphql.Field{
@@ -36,7 +36,7 @@ func NewAPI(dataModel data.IData) *API {
 					if album, ok := p.Source.(data.Photo); ok {
 						return album.AlbumID, nil
 					}
-					return nil, errors.New("source is not a api.Photo")
+					return nil, errors.New("source is not a Photo")
 				},
 			},
 			"description": &graphql.Field{
@@ -46,7 +46,7 @@ func NewAPI(dataModel data.IData) *API {
 					if album, ok := p.Source.(data.Photo); ok {
 						return album.Description, nil
 					}
-					return nil, errors.New("source is not a api.Photo")
+					return nil, errors.New("source is not a Photo")
 				},
 			},
 		},
@@ -63,7 +63,7 @@ func NewAPI(dataModel data.IData) *API {
 					if album, ok := p.Source.(data.Album); ok {
 						return album.ID, nil
 					}
-					return nil, errors.New("source is not a api.Album")
+					return nil, errors.New("source is not an Album")
 				},
 			},
 			"userid": &graphql.Field{
@@ -73,7 +73,7 @@ func NewAPI(dataModel data.IData) *API {
 					if album, ok := p.Source.(data.Album); ok {
 						return album.UserID, nil
 					}
-					return nil, errors.New("source is not a api.Album")
+					return nil, errors.New("source is not an Album")
 				},
 			},
 			"description": &graphql.Field{
@@ -83,7 +83,7 @@ func NewAPI(dataModel data.IData) *API {
 					if album, ok := p.Source.(data.Album); ok {
 						return album.Description, nil
 					}
-					return nil, errors.New("source is not a api.Album")
+					return nil, errors.New("source is not an Album")
 				},
 			},
 			"photos": &graphql.Field{
@@ -93,7 +93,7 @@ func NewAPI(dataModel data.IData) *API {
 					if user, ok := p.Source.(data.Album); ok {
 						return dataModel.GetPhotosByAlbumID(user.ID), nil
 					}
-					return nil, errors.New("source is not a api.Album")
+					return nil, errors.New("source is not an Album")
 				},
 			},
 		},
@@ -110,7 +110,7 @@ func NewAPI(dataModel data.IData) *API {
 					if user, ok := p.Source.(data.User); ok {
 						return user.ID, nil
 					}
-					return nil, errors.New("source is not a api.User")
+					return nil, errors.New("source is not a User")
 				},
 			},
 			"name": &graphql.Field{
@@ -120,7 +120,7 @@ func NewAPI(dataModel data.IData) *API {
 					if user, ok := p.Source.(data.User); ok {
 						return user.Name, nil
 					}
-					return nil, errors.New("source is not a api.User")
+					return nil, errors.New("source is not a User")
 				},
 			},
 			"username": &graphql.Field{
@@ -130,7 +130,7 @@ func NewAPI(dataModel data.IData) *API {
 					if user, ok := p.Source.(data.User); ok {
 						return user.Username, nil
 					}
-					return nil, errors.New("source is not a api.User")
+					return nil, errors.New("source is not a User")
 				},
 			},
 			"albums": &graphql.Field{
@@ -140,7 +140,7 @@ func NewAPI(dataModel data.IData) *API {
 					if user, ok := p.Source.(data.User); ok {
 						return dataModel.GetAlbumsByUserID(user.ID), nil
 					}
-					return nil, errors.New("source is not a api.User")
+					return nil, errors.New("source is not a User")
 				},
 			},
 		},

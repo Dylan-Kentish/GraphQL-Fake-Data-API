@@ -258,7 +258,7 @@ var _ = Describe("Api", func() {
 				params := graphql.Params{Schema: api.Schema, RequestString: query}
 				r := graphql.Do(params)
 				Expect(r.Errors).To(HaveLen(1))
-				Expect(r.Errors[0].Message).To(Equal("source is not a api.User"))
+				Expect(r.Errors[0].Message).To(Equal("source is not a User"))
 			}
 		})
 
@@ -270,7 +270,7 @@ var _ = Describe("Api", func() {
 				params := graphql.Params{Schema: api.Schema, RequestString: query}
 				r := graphql.Do(params)
 				Expect(r.Errors).To(HaveLen(1))
-				Expect(r.Errors[0].Message).To(Equal("source is not a api.Photo"))
+				Expect(r.Errors[0].Message).To(Equal("source is not a Photo"))
 			}
 		})
 
@@ -282,7 +282,7 @@ var _ = Describe("Api", func() {
 				params := graphql.Params{Schema: api.Schema, RequestString: query}
 				r := graphql.Do(params)
 				Expect(r.Errors).To(HaveLen(1))
-				Expect(r.Errors[0].Message).To(Equal("source is not a api.Album"))
+				Expect(r.Errors[0].Message).To(Equal("source is not an Album"))
 			}
 		})
 
