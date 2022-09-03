@@ -161,6 +161,7 @@ var _ = Describe("Albums", func() {
 		},
 			Entry("id", "id"),
 			Entry("userid", "userid"),
-			Entry("description", "description"))
+			Entry("description", "description"),
+			Entry("photos", "photos{id}"))
 	})
 })
