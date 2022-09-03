@@ -33,17 +33,17 @@ var _ = Describe("Api", func() {
 		userTests[i] = Entry(idString, user.ID)
 	}
 
-	var testApi *API
+	var api *API
 
 	BeforeEach(func() {
-		testApi = NewAPI(testData)
+		api = NewAPI(testData)
 	})
 
 	Context("Albums", func() {
 		It("Invalid ID", func() {
 			// Query
 			query := `{album(id:-1){id,userid,description}}`
-			params := graphql.Params{Schema: testApi.Schema, RequestString: query}
+			params := graphql.Params{Schema: api.Schema, RequestString: query}
 			r := graphql.Do(params)
 			Expect(r.Errors).To(BeEmpty())
 
@@ -55,7 +55,7 @@ var _ = Describe("Api", func() {
 		DescribeTable("Get album by ID", func(id int) {
 			// Query
 			query := fmt.Sprintf(`{album(id:%v){id,userid,description}}`, id)
-			params := graphql.Params{Schema: testApi.Schema, RequestString: query}
+			params := graphql.Params{Schema: api.Schema, RequestString: query}
 			r := graphql.Do(params)
 			Expect(r.Errors).To(BeEmpty())
 
@@ -67,7 +67,7 @@ var _ = Describe("Api", func() {
 		DescribeTable("Get album by userID", func(userId int) {
 			// Query
 			query := fmt.Sprintf(`{albums(userid:%v){id,userid,description}}`, userId)
-			params := graphql.Params{Schema: testApi.Schema, RequestString: query}
+			params := graphql.Params{Schema: api.Schema, RequestString: query}
 			r := graphql.Do(params)
 			Expect(r.Errors).To(BeEmpty())
 
@@ -81,7 +81,7 @@ var _ = Describe("Api", func() {
 		It("Get all albums", func() {
 			// Query
 			query := `{albums{id,userid,description}}`
-			params := graphql.Params{Schema: testApi.Schema, RequestString: query}
+			params := graphql.Params{Schema: api.Schema, RequestString: query}
 			r := graphql.Do(params)
 			Expect(r.Errors).To(BeEmpty())
 
@@ -92,7 +92,7 @@ var _ = Describe("Api", func() {
 
 		DescribeTable("Get album photos", func(id int) {
 			query := fmt.Sprintf(`{album(id:%v){id,photos{id,albumid,description}}}`, id)
-			params := graphql.Params{Schema: testApi.Schema, RequestString: query}
+			params := graphql.Params{Schema: api.Schema, RequestString: query}
 			r := graphql.Do(params)
 			Expect(r.Errors).To(BeEmpty())
 
@@ -107,7 +107,7 @@ var _ = Describe("Api", func() {
 			limit := 5
 			// Query
 			query := fmt.Sprintf(`{albums(limit:%v){id,userid,description}}`, limit)
-			params := graphql.Params{Schema: testApi.Schema, RequestString: query}
+			params := graphql.Params{Schema: api.Schema, RequestString: query}
 			r := graphql.Do(params)
 			Expect(r.Errors).To(BeEmpty())
 
@@ -121,7 +121,7 @@ var _ = Describe("Api", func() {
 		It("Invalid ID", func() {
 			// Query
 			query := `{photo(id:-1){id,albumid,description}}`
-			params := graphql.Params{Schema: testApi.Schema, RequestString: query}
+			params := graphql.Params{Schema: api.Schema, RequestString: query}
 			r := graphql.Do(params)
 			Expect(r.Errors).To(BeEmpty())
 
@@ -133,7 +133,7 @@ var _ = Describe("Api", func() {
 		DescribeTable("Get photo by ID", func(id int) {
 			// Query
 			query := fmt.Sprintf(`{photo(id:%v){id,albumid,description}}`, id)
-			params := graphql.Params{Schema: testApi.Schema, RequestString: query}
+			params := graphql.Params{Schema: api.Schema, RequestString: query}
 			r := graphql.Do(params)
 			Expect(r.Errors).To(BeEmpty())
 
@@ -145,7 +145,7 @@ var _ = Describe("Api", func() {
 		DescribeTable("Get photo by albumID", func(albumId int) {
 			// Query
 			query := fmt.Sprintf(`{photos(albumid:%v){id,albumid,description}}`, albumId)
-			params := graphql.Params{Schema: testApi.Schema, RequestString: query}
+			params := graphql.Params{Schema: api.Schema, RequestString: query}
 			r := graphql.Do(params)
 			Expect(r.Errors).To(BeEmpty())
 
@@ -159,7 +159,7 @@ var _ = Describe("Api", func() {
 		It("Get all Photos", func() {
 			// Query
 			query := `{photos{id,albumid,description}}`
-			params := graphql.Params{Schema: testApi.Schema, RequestString: query}
+			params := graphql.Params{Schema: api.Schema, RequestString: query}
 			r := graphql.Do(params)
 			Expect(r.Errors).To(BeEmpty())
 
@@ -172,7 +172,7 @@ var _ = Describe("Api", func() {
 			limit := 5
 			// Query
 			query := fmt.Sprintf(`{photos(limit:%v){id,albumid,description}}`, limit)
-			params := graphql.Params{Schema: testApi.Schema, RequestString: query}
+			params := graphql.Params{Schema: api.Schema, RequestString: query}
 			r := graphql.Do(params)
 			Expect(r.Errors).To(BeEmpty())
 
@@ -186,7 +186,7 @@ var _ = Describe("Api", func() {
 		It("Invalid ID", func() {
 			// Query
 			query := `{user(id:-1){id,name,username}}`
-			params := graphql.Params{Schema: testApi.Schema, RequestString: query}
+			params := graphql.Params{Schema: api.Schema, RequestString: query}
 			r := graphql.Do(params)
 			Expect(r.Errors).To(BeEmpty())
 
@@ -198,7 +198,7 @@ var _ = Describe("Api", func() {
 		DescribeTable("Get user by ID", func(id int) {
 			// Query
 			query := fmt.Sprintf(`{user(id:%v){id,name,username}}`, id)
-			params := graphql.Params{Schema: testApi.Schema, RequestString: query}
+			params := graphql.Params{Schema: api.Schema, RequestString: query}
 			r := graphql.Do(params)
 			Expect(r.Errors).To(BeEmpty())
 
@@ -210,7 +210,7 @@ var _ = Describe("Api", func() {
 		It("Get all users", func() {
 			// Query
 			query := `{users{id,name,username}}`
-			params := graphql.Params{Schema: testApi.Schema, RequestString: query}
+			params := graphql.Params{Schema: api.Schema, RequestString: query}
 			r := graphql.Do(params)
 			Expect(r.Errors).To(BeEmpty())
 
@@ -221,7 +221,7 @@ var _ = Describe("Api", func() {
 
 		DescribeTable("Get user albums", func(id int) {
 			query := fmt.Sprintf(`{user(id:%v){id,albums{id,userid,description}}}`, id)
-			params := graphql.Params{Schema: testApi.Schema, RequestString: query}
+			params := graphql.Params{Schema: api.Schema, RequestString: query}
 			r := graphql.Do(params)
 			Expect(r.Errors).To(BeEmpty())
 
@@ -236,7 +236,7 @@ var _ = Describe("Api", func() {
 			limit := 5
 			// Query
 			query := fmt.Sprintf(`{users(limit:%v){id,name,username}}`, limit)
-			params := graphql.Params{Schema: testApi.Schema, RequestString: query}
+			params := graphql.Params{Schema: api.Schema, RequestString: query}
 			r := graphql.Do(params)
 			Expect(r.Errors).To(BeEmpty())
 
@@ -248,7 +248,7 @@ var _ = Describe("Api", func() {
 
 	Context("Bad Schema returns err when resolving fields", func() {
 		BeforeEach(func() {
-			queryFields := testApi.Schema.QueryType().Fields()
+			queryFields := api.Schema.QueryType().Fields()
 
 			for _, field := range queryFields {
 				// Set all fields to return the wrong type
@@ -257,11 +257,11 @@ var _ = Describe("Api", func() {
 		})
 
 		It("User fields", func() {
-			queries := utils.TransformValues(testApi.UserType.Fields(), testUtils.ConvertFieldDefinitionToQueryString)
+			queries := utils.TransformValues(api.UserType.Fields(), testUtils.ConvertFieldDefinitionToQueryString)
 			for _, query := range queries {
 				// Query
 				query := fmt.Sprintf(`{user(id:0){%s}}`, query)
-				params := graphql.Params{Schema: testApi.Schema, RequestString: query}
+				params := graphql.Params{Schema: api.Schema, RequestString: query}
 				r := graphql.Do(params)
 				Expect(r.Errors).To(HaveLen(1))
 				Expect(r.Errors[0].Message).To(Equal("source is not a api.User"))
@@ -269,11 +269,11 @@ var _ = Describe("Api", func() {
 		})
 
 		It("Photo fields", func() {
-			queries := utils.TransformValues(testApi.PhotoType.Fields(), testUtils.ConvertFieldDefinitionToQueryString)
+			queries := utils.TransformValues(api.PhotoType.Fields(), testUtils.ConvertFieldDefinitionToQueryString)
 			for _, query := range queries {
 				// Query
 				query := fmt.Sprintf(`{photo(id:0){%s}}`, query)
-				params := graphql.Params{Schema: testApi.Schema, RequestString: query}
+				params := graphql.Params{Schema: api.Schema, RequestString: query}
 				r := graphql.Do(params)
 				Expect(r.Errors).To(HaveLen(1))
 				Expect(r.Errors[0].Message).To(Equal("source is not a api.Photo"))
@@ -281,11 +281,11 @@ var _ = Describe("Api", func() {
 		})
 
 		It("Album fields", func() {
-			queries := utils.TransformValues(testApi.AlbumType.Fields(), testUtils.ConvertFieldDefinitionToQueryString)
+			queries := utils.TransformValues(api.AlbumType.Fields(), testUtils.ConvertFieldDefinitionToQueryString)
 			for _, query := range queries {
 				// Query
 				query := fmt.Sprintf(`{album(id:0){%s}}`, query)
-				params := graphql.Params{Schema: testApi.Schema, RequestString: query}
+				params := graphql.Params{Schema: api.Schema, RequestString: query}
 				r := graphql.Do(params)
 				Expect(r.Errors).To(HaveLen(1))
 				Expect(r.Errors[0].Message).To(Equal("source is not a api.Album"))
