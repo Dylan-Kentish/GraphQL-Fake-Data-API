@@ -90,6 +90,27 @@ var _ = Describe("Albums", func() {
 		Expect(albums).To(ContainElements(maps.Values(data.Albums)))
 	})
 
+	DescribeTable("Get album photos", func(id int) {
+		query := fmt.Sprintf(`{album(id:%v){id,photos{id,albumid,description}}}`, id)
+		params := graphql.Params{Schema: testApi.Schema, RequestString: query}
+		r := graphql.Do(params)
+		Expect(r.Errors).To(BeEmpty())
+
+		result := r.Data.(map[string]interface{})
+		var album api.Album
+		convertTo(result["album"], &album)
+
+		expected := make([]api.Photo, 0)
+
+		for _, photo := range data.Photos {
+			if photo.AlbumID == id {
+				expected = append(expected, photo)
+			}
+		}
+
+		Expect(album.Photos).To(ContainElements(expected))
+	}, userTests)
+
 	It("Get limited albums", func() {
 		limit := 5
 		// Query
@@ -140,6 +161,7 @@ var _ = Describe("Albums", func() {
 		},
 			Entry("id", "id"),
 			Entry("userid", "userid"),
-			Entry("description", "description"))
+			Entry("description", "description"),
+			Entry("photos", "photos{id}"))
 	})
 })

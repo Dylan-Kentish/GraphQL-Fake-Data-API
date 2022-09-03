@@ -11,9 +11,47 @@ type API struct {
 	Schema    graphql.Schema
 	UserType  *graphql.Object
 	AlbumType *graphql.Object
+	PhotoType *graphql.Object
 }
 
 func NewAPI(data *data) *API {
+	photoType := graphql.NewObject(graphql.ObjectConfig{
+		Name:        "Photo",
+		Description: "A photo.",
+		Fields: graphql.Fields{
+			"id": &graphql.Field{
+				Type:        graphql.NewNonNull(graphql.Int),
+				Description: "The id of the photo.",
+				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+					if album, ok := p.Source.(Photo); ok {
+						return album.ID, nil
+					}
+					return nil, errors.New("source is not a api.Photo")
+				},
+			},
+			"albumid": &graphql.Field{
+				Type:        graphql.NewNonNull(graphql.Int),
+				Description: "The id of the album.",
+				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+					if album, ok := p.Source.(Photo); ok {
+						return album.AlbumID, nil
+					}
+					return nil, errors.New("source is not a api.Photo")
+				},
+			},
+			"description": &graphql.Field{
+				Type:        graphql.String,
+				Description: "The description of the photo.",
+				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+					if album, ok := p.Source.(Photo); ok {
+						return album.Description, nil
+					}
+					return nil, errors.New("source is not a api.Photo")
+				},
+			},
+		},
+	})
+
 	albumType := graphql.NewObject(graphql.ObjectConfig{
 		Name:        "Album",
 		Description: "A album.",
@@ -44,6 +82,16 @@ func NewAPI(data *data) *API {
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 					if album, ok := p.Source.(Album); ok {
 						return album.Description, nil
+					}
+					return nil, errors.New("source is not a api.Album")
+				},
+			},
+			"photos": &graphql.Field{
+				Type:        graphql.NewList(photoType),
+				Description: "The albums photos.",
+				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+					if user, ok := p.Source.(Album); ok {
+						return data.getPhotosByAlbumID(user.ID), nil
 					}
 					return nil, errors.New("source is not a api.Album")
 				},
@@ -175,6 +223,49 @@ func NewAPI(data *data) *API {
 					}
 				},
 			},
+			"photo": &graphql.Field{
+				Type:        photoType,
+				Description: "Photo by ID",
+				Args: graphql.FieldConfigArgument{
+					"id": &graphql.ArgumentConfig{
+						Description: "id of the photo",
+						Type:        graphql.NewNonNull(graphql.Int),
+					},
+				},
+				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+					return data.getPhoto(p.Args["id"].(int)), nil
+				},
+			},
+			"photos": &graphql.Field{
+				Type:        graphql.NewList(photoType),
+				Description: "All albums",
+				Args: graphql.FieldConfigArgument{
+					"albumid": &graphql.ArgumentConfig{
+						Description: "id of the album",
+						Type:        graphql.Int,
+					},
+					"limit": &graphql.ArgumentConfig{
+						Description: "limit the number of photos",
+						Type:        graphql.Int,
+					},
+				},
+
+				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+					var photos []Photo
+
+					if id, exists := p.Args["albumid"].(int); exists {
+						photos = data.getPhotosByAlbumID(id)
+					} else {
+						photos = maps.Values(data.Photos)
+					}
+
+					if limit, exists := p.Args["limit"].(int); exists {
+						return photos[:limit], nil
+					} else {
+						return photos, nil
+					}
+				},
+			},
 		},
 	})
 
@@ -186,5 +277,6 @@ func NewAPI(data *data) *API {
 		Schema:    schema,
 		UserType:  userType,
 		AlbumType: albumType,
+		PhotoType: photoType,
 	}
 }
