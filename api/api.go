@@ -224,7 +224,7 @@ func NewAPI(data *data) *API {
 				},
 			},
 			"photo": &graphql.Field{
-				Type:        albumType,
+				Type:        photoType,
 				Description: "Photo by ID",
 				Args: graphql.FieldConfigArgument{
 					"id": &graphql.ArgumentConfig{
@@ -237,7 +237,7 @@ func NewAPI(data *data) *API {
 				},
 			},
 			"photos": &graphql.Field{
-				Type:        graphql.NewList(albumType),
+				Type:        graphql.NewList(photoType),
 				Description: "All albums",
 				Args: graphql.FieldConfigArgument{
 					"albumid": &graphql.ArgumentConfig{

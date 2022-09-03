@@ -42,7 +42,7 @@ var _ = Describe("Photos", func() {
 
 	DescribeTable("Get photo by ID", func(id int) {
 		// Query
-		query := fmt.Sprintf(`{photo(id:%v){id,userid,description}}`, id)
+		query := fmt.Sprintf(`{photo(id:%v){id,albumid,description}}`, id)
 		params := graphql.Params{Schema: testApi.Schema, RequestString: query}
 		r := graphql.Do(params)
 		Expect(r.Errors).To(BeEmpty())
@@ -56,7 +56,7 @@ var _ = Describe("Photos", func() {
 
 	DescribeTable("Get photo by albumID", func(albumId int) {
 		// Query
-		query := fmt.Sprintf(`{Photos(userid:%v){id,userid,description}}`, albumId)
+		query := fmt.Sprintf(`{photos(albumid:%v){id,albumid,description}}`, albumId)
 		params := graphql.Params{Schema: testApi.Schema, RequestString: query}
 		r := graphql.Do(params)
 		Expect(r.Errors).To(BeEmpty())
@@ -78,14 +78,14 @@ var _ = Describe("Photos", func() {
 
 	It("Get all Photos", func() {
 		// Query
-		query := `{Photos{id,albumid,description}}`
+		query := `{photos{id,albumid,description}}`
 		params := graphql.Params{Schema: testApi.Schema, RequestString: query}
 		r := graphql.Do(params)
 		Expect(r.Errors).To(BeEmpty())
 
 		result := r.Data.(map[string]interface{})
 		var Photos []api.Photo
-		convertTo(result["Photos"], &Photos)
+		convertTo(result["photos"], &Photos)
 
 		Expect(Photos).To(ContainElements(maps.Values(data.Photos)))
 	})
@@ -93,14 +93,14 @@ var _ = Describe("Photos", func() {
 	It("Get limited Photos", func() {
 		limit := 5
 		// Query
-		query := fmt.Sprintf(`{Photos(limit:%v){id,albumid,description}}`, limit)
+		query := fmt.Sprintf(`{photos(limit:%v){id,albumid,description}}`, limit)
 		params := graphql.Params{Schema: testApi.Schema, RequestString: query}
 		r := graphql.Do(params)
 		Expect(r.Errors).To(BeEmpty())
 
 		result := r.Data.(map[string]interface{})
 		var Photos []api.Photo
-		convertTo(result["Photos"], &Photos)
+		convertTo(result["photos"], &Photos)
 
 		Expect(Photos).To(HaveLen(limit))
 	})
