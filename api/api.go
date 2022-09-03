@@ -223,6 +223,49 @@ func NewAPI(data *data) *API {
 					}
 				},
 			},
+			"photo": &graphql.Field{
+				Type:        albumType,
+				Description: "Photo by ID",
+				Args: graphql.FieldConfigArgument{
+					"id": &graphql.ArgumentConfig{
+						Description: "id of the photo",
+						Type:        graphql.NewNonNull(graphql.Int),
+					},
+				},
+				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+					return data.getPhoto(p.Args["id"].(int)), nil
+				},
+			},
+			"photos": &graphql.Field{
+				Type:        graphql.NewList(albumType),
+				Description: "All albums",
+				Args: graphql.FieldConfigArgument{
+					"albumid": &graphql.ArgumentConfig{
+						Description: "id of the album",
+						Type:        graphql.Int,
+					},
+					"limit": &graphql.ArgumentConfig{
+						Description: "limit the number of photos",
+						Type:        graphql.Int,
+					},
+				},
+
+				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+					var photos []Photo
+
+					if id, exists := p.Args["albumid"].(int); exists {
+						photos = data.getPhotosByAlbumID(id)
+					} else {
+						photos = maps.Values(data.Photos)
+					}
+
+					if limit, exists := p.Args["limit"].(int); exists {
+						return photos[:limit], nil
+					} else {
+						return photos, nil
+					}
+				},
+			},
 		},
 	})
 

@@ -62,6 +62,13 @@ func (data *data) getAlbum(id int) Album {
 	return Album{}
 }
 
+func (data *data) getPhoto(id int) Photo {
+	if photo, ok := data.Photos[id]; ok {
+		return photo
+	}
+	return Photo{}
+}
+
 func (data *data) getAlbumsByUserID(userID int) []Album {
 	albums := make([]Album, 0)
 
