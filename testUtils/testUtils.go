@@ -34,6 +34,6 @@ func GetData[T any](r *graphql.Result, key string) T {
 func convertTo[T any](in interface{}) T {
 	bytes, _ := json.Marshal(in)
 	var out T
-	json.Unmarshal(bytes, out)
+	json.Unmarshal(bytes, &out)
 	return out
 }
