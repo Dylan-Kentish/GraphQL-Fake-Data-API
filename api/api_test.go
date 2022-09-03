@@ -5,7 +5,6 @@ import (
 
 	"github.com/Dylan-Kentish/GraphQLFakeDataAPI/data"
 	"github.com/Dylan-Kentish/GraphQLFakeDataAPI/testUtils"
-	"github.com/Dylan-Kentish/GraphQLFakeDataAPI/utils"
 	"github.com/graphql-go/graphql"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -42,9 +41,7 @@ var _ = Describe("Api", func() {
 			r := graphql.Do(params)
 			Expect(r.Errors).To(BeEmpty())
 
-			result := r.Data.(map[string]interface{})
-			var album data.Album
-			utils.ConvertTo(result["album"], &album)
+			album := testUtils.GetData[data.Album](r, "album")
 
 			Expect(album).To(Equal(data.Album{}))
 		})
@@ -56,9 +53,7 @@ var _ = Describe("Api", func() {
 			r := graphql.Do(params)
 			Expect(r.Errors).To(BeEmpty())
 
-			result := r.Data.(map[string]interface{})
-			var album data.Album
-			utils.ConvertTo(result["album"], &album)
+			album := testUtils.GetData[data.Album](r, "album")
 
 			Expect(album).To(Equal(testData.Albums[id]))
 		}, albumTests)
@@ -70,9 +65,7 @@ var _ = Describe("Api", func() {
 			r := graphql.Do(params)
 			Expect(r.Errors).To(BeEmpty())
 
-			result := r.Data.(map[string]interface{})
-			var albums []data.Album
-			utils.ConvertTo(result["albums"], &albums)
+			albums := testUtils.GetData[[]data.Album](r, "albums")
 
 			expected := make([]data.Album, 0)
 
@@ -92,9 +85,7 @@ var _ = Describe("Api", func() {
 			r := graphql.Do(params)
 			Expect(r.Errors).To(BeEmpty())
 
-			result := r.Data.(map[string]interface{})
-			var albums []data.Album
-			utils.ConvertTo(result["albums"], &albums)
+			albums := testUtils.GetData[[]data.Album](r, "albums")
 
 			Expect(albums).To(ContainElements(maps.Values(testData.Albums)))
 		})
@@ -105,9 +96,7 @@ var _ = Describe("Api", func() {
 			r := graphql.Do(params)
 			Expect(r.Errors).To(BeEmpty())
 
-			result := r.Data.(map[string]interface{})
-			var album data.Album
-			utils.ConvertTo(result["album"], &album)
+			album := testUtils.GetData[data.Album](r, "album")
 
 			expected := make([]data.Photo, 0)
 
@@ -128,9 +117,7 @@ var _ = Describe("Api", func() {
 			r := graphql.Do(params)
 			Expect(r.Errors).To(BeEmpty())
 
-			result := r.Data.(map[string]interface{})
-			var albums []data.Album
-			utils.ConvertTo(result["albums"], &albums)
+			albums := testUtils.GetData[[]data.Album](r, "albums")
 
 			Expect(albums).To(HaveLen(limit))
 		})
@@ -183,9 +170,7 @@ var _ = Describe("Api", func() {
 			r := graphql.Do(params)
 			Expect(r.Errors).To(BeEmpty())
 
-			result := r.Data.(map[string]interface{})
-			var photo data.Photo
-			utils.ConvertTo(result["photo"], &photo)
+			photo := testUtils.GetData[data.Photo](r, "photo")
 
 			Expect(photo).To(Equal(data.Photo{}))
 		})
@@ -197,9 +182,7 @@ var _ = Describe("Api", func() {
 			r := graphql.Do(params)
 			Expect(r.Errors).To(BeEmpty())
 
-			result := r.Data.(map[string]interface{})
-			var photo data.Photo
-			utils.ConvertTo(result["photo"], &photo)
+			photo := testUtils.GetData[data.Photo](r, "photo")
 
 			Expect(photo).To(Equal(testData.Photos[id]))
 		}, photoTests)
@@ -211,9 +194,7 @@ var _ = Describe("Api", func() {
 			r := graphql.Do(params)
 			Expect(r.Errors).To(BeEmpty())
 
-			result := r.Data.(map[string]interface{})
-			var Photos []data.Photo
-			utils.ConvertTo(result["photos"], &Photos)
+			photos := testUtils.GetData[[]data.Photo](r, "photos")
 
 			expected := make([]data.Photo, 0)
 
@@ -223,7 +204,7 @@ var _ = Describe("Api", func() {
 				}
 			}
 
-			Expect(Photos).To(ContainElements(expected))
+			Expect(photos).To(ContainElements(expected))
 		}, userTests)
 
 		It("Get all Photos", func() {
@@ -233,11 +214,9 @@ var _ = Describe("Api", func() {
 			r := graphql.Do(params)
 			Expect(r.Errors).To(BeEmpty())
 
-			result := r.Data.(map[string]interface{})
-			var Photos []data.Photo
-			utils.ConvertTo(result["photos"], &Photos)
+			photos := testUtils.GetData[[]data.Photo](r, "photos")
 
-			Expect(Photos).To(ContainElements(maps.Values(testData.Photos)))
+			Expect(photos).To(ContainElements(maps.Values(testData.Photos)))
 		})
 
 		It("Get limited Photos", func() {
@@ -248,11 +227,9 @@ var _ = Describe("Api", func() {
 			r := graphql.Do(params)
 			Expect(r.Errors).To(BeEmpty())
 
-			result := r.Data.(map[string]interface{})
-			var Photos []data.Photo
-			utils.ConvertTo(result["photos"], &Photos)
+			photos := testUtils.GetData[[]data.Photo](r, "photos")
 
-			Expect(Photos).To(HaveLen(limit))
+			Expect(photos).To(HaveLen(limit))
 		})
 
 		Context("Bad Schema", func() {
@@ -302,9 +279,7 @@ var _ = Describe("Api", func() {
 			r := graphql.Do(params)
 			Expect(r.Errors).To(BeEmpty())
 
-			result := r.Data.(map[string]interface{})
-			var user data.User
-			utils.ConvertTo(result["user"], &user)
+			user := testUtils.GetData[data.User](r, "user")
 
 			Expect(user).To(Equal(data.User{}))
 		})
@@ -316,9 +291,7 @@ var _ = Describe("Api", func() {
 			r := graphql.Do(params)
 			Expect(r.Errors).To(BeEmpty())
 
-			result := r.Data.(map[string]interface{})
-			var user data.User
-			utils.ConvertTo(result["user"], &user)
+			user := testUtils.GetData[data.User](r, "user")
 
 			Expect(user).To(Equal(testData.Users[id]))
 		}, userTests)
@@ -330,9 +303,7 @@ var _ = Describe("Api", func() {
 			r := graphql.Do(params)
 			Expect(r.Errors).To(BeEmpty())
 
-			result := r.Data.(map[string]interface{})
-			var users []data.User
-			utils.ConvertTo(result["users"], &users)
+			users := testUtils.GetData[[]data.User](r, "users")
 
 			Expect(users).To(ContainElements(maps.Values(testData.Users)))
 		})
@@ -343,9 +314,7 @@ var _ = Describe("Api", func() {
 			r := graphql.Do(params)
 			Expect(r.Errors).To(BeEmpty())
 
-			result := r.Data.(map[string]interface{})
-			var user data.User
-			utils.ConvertTo(result["user"], &user)
+			user := testUtils.GetData[data.User](r, "user")
 
 			expected := make([]data.Album, 0)
 
@@ -366,9 +335,7 @@ var _ = Describe("Api", func() {
 			r := graphql.Do(params)
 			Expect(r.Errors).To(BeEmpty())
 
-			result := r.Data.(map[string]interface{})
-			var users []data.User
-			utils.ConvertTo(result["users"], &users)
+			users := testUtils.GetData[[]data.User](r, "users")
 
 			Expect(users).To(HaveLen(limit))
 		})

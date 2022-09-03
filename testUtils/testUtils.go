@@ -1,6 +1,7 @@
 package testUtils
 
 import (
+	"encoding/json"
 	"fmt"
 
 	"github.com/graphql-go/graphql"
@@ -22,4 +23,17 @@ func ConvertFieldDefinitionToQueryString(item *graphql.FieldDefinition) ginkgo.T
 	}
 
 	return ginkgo.Entry(item.Name, value)
+}
+
+func GetData[T any](r *graphql.Result, key string) T {
+	result := r.Data.(map[string]interface{})
+	return convertTo[T](result[key])
+}
+
+// Converts the provided interface into struct T via Json.
+func convertTo[T any](in interface{}) T {
+	bytes, _ := json.Marshal(in)
+	var out T
+	json.Unmarshal(bytes, out)
+	return out
 }
