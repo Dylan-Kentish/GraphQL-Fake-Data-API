@@ -100,7 +100,7 @@ var _ = Describe("Albums", func() {
 		var album api.Album
 		convertTo(result["album"], &album)
 
-		expected := make([]api.Album, 0)
+		expected := make([]api.Photo, 0)
 
 		for _, photo := range data.Photos {
 			if photo.AlbumID == id {
