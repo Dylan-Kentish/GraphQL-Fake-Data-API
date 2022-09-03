@@ -39,3 +39,19 @@ var _ = Describe("Where", func() {
 		Expect(result).To(ContainElements(BeNumerically("<", 5)))
 	})
 })
+
+var _ = Describe("ValuesWhere", func() {
+	It("Filters values", func() {
+		count := 10
+		m := make(map[int]int, count)
+
+		for i := 0; i < count; i++ {
+			m[i] = i
+		}
+
+		result := ValuesWhere(m, func(i int) bool { return i < 5 })
+
+		Expect(result).To(HaveLen(5))
+		Expect(result).To(ContainElements(BeNumerically("<", 5)))
+	})
+})
