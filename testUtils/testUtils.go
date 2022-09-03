@@ -9,20 +9,26 @@ import (
 	"golang.org/x/exp/maps"
 )
 
-func ConvertFieldDefinitionToQueryString(item *graphql.FieldDefinition) ginkgo.TableEntry {
+func ConvertFieldDefinitionToTableEntry(item *graphql.FieldDefinition) ginkgo.TableEntry {
+	value := convertFieldDefinitionToQueryString(item)
+
+	return ginkgo.Entry(item.Name, value)
+}
+
+func convertFieldDefinitionToQueryString(item *graphql.FieldDefinition) string {
 	value := item.Name
 
 	if list, ok := item.Type.(*graphql.List); ok {
 		if obj, ok := list.OfType.(*graphql.Object); ok {
 			subFieldsMap := obj.Fields()
 			if len(subFieldsMap) > 0 {
-				subFieldsValues := maps.Values(subFieldsMap)
-				value += fmt.Sprintf("{%s}", subFieldsValues[0].Name)
+				field := maps.Values(subFieldsMap)[0]
+				value += fmt.Sprintf("{%s}", convertFieldDefinitionToQueryString(field))
 			}
 		}
 	}
 
-	return ginkgo.Entry(item.Name, value)
+	return value
 }
 
 func GetData[T any](r *graphql.Result, key string) T {

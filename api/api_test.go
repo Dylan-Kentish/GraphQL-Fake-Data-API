@@ -143,11 +143,7 @@ var _ = Describe("Api", func() {
 				r := graphql.Do(params)
 				Expect(r.Errors).To(HaveLen(1))
 				Expect(r.Errors[0].Message).To(Equal("source is not a api.Album"))
-			},
-				Entry("id", "id"),
-				Entry("userid", "userid"),
-				Entry("description", "description"),
-				Entry("photos", "photos{id}"))
+			}, utils.TransformValues(testApi.AlbumType.Fields(), testUtils.ConvertFieldDefinitionToTableEntry))
 		})
 	})
 
@@ -247,10 +243,7 @@ var _ = Describe("Api", func() {
 				r := graphql.Do(params)
 				Expect(r.Errors).To(HaveLen(1))
 				Expect(r.Errors[0].Message).To(Equal("source is not a api.Photo"))
-			},
-				Entry("id", "id"),
-				Entry("albumid", "albumid"),
-				Entry("description", "description"))
+			}, utils.TransformValues(testApi.PhotoType.Fields(), testUtils.ConvertFieldDefinitionToTableEntry))
 		})
 	})
 
@@ -364,11 +357,7 @@ var _ = Describe("Api", func() {
 				r := graphql.Do(params)
 				Expect(r.Errors).To(HaveLen(1))
 				Expect(r.Errors[0].Message).To(Equal("source is not a api.User"))
-			},
-				Entry("id", "id"),
-				Entry("name", "name"),
-				Entry("username", "username"),
-				Entry("albums", "albums{id}"))
+			}, utils.TransformValues(testApi.UserType.Fields(), testUtils.ConvertFieldDefinitionToTableEntry))
 		})
 	})
 })
