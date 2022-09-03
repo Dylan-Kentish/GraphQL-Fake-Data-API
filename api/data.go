@@ -7,13 +7,15 @@ import (
 )
 
 const (
-	numberOfUsers      int = 10
-	numberOfUserAlbums int = 10
+	numberOfUsers       int = 10
+	numberOfUserAlbums  int = 10
+	numberOfAlbumPhotos int = 10
 )
 
 type data struct {
 	Users  map[int]User
 	Albums map[int]Album
+	Photos map[int]Photo
 }
 
 type User struct {
@@ -27,13 +29,22 @@ type Album struct {
 	ID          int
 	UserID      int
 	Description string
+	Photos      []Photo
+}
+
+type Photo struct {
+	ID          int
+	AlbumID     int
+	Description string
 }
 
 func NewData() *data {
 	users := getUserData()
+	albums := getAlbums(maps.Keys(users))
 	return &data{
 		Users:  users,
-		Albums: getAlbums(maps.Keys(users)),
+		Albums: albums,
+		Photos: getPhotos(maps.Keys(albums)),
 	}
 }
 
@@ -94,4 +105,23 @@ func getAlbums(userIDs []int) map[int]Album {
 	}
 
 	return albums
+}
+
+func getPhotos(albumIDs []int) map[int]Photo {
+	photos := make(map[int]Photo, len(albumIDs)*numberOfAlbumPhotos)
+
+	for _, albumID := range albumIDs {
+		startIndex := albumID * numberOfAlbumPhotos
+		endIndex := (albumID + 1) * numberOfAlbumPhotos
+		for i := startIndex; i < endIndex; i++ {
+			iString := fmt.Sprint(i)
+			photos[i] = Photo{
+				ID:          i,
+				AlbumID:     albumID,
+				Description: "Photo " + iString,
+			}
+		}
+	}
+
+	return photos
 }
