@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	data := api.NewData()
+	data := api.NewTestData()
 	api := api.NewAPI(data)
 
 	h := handler.New(&handler.Config{
