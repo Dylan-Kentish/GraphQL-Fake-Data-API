@@ -13,12 +13,78 @@ const (
 	numberOfAlbumPhotos int = 10
 )
 
-func NewTestData() *data.Data {
+type testData struct {
+	Users  map[int]data.User
+	Albums map[int]data.Album
+	Photos map[int]data.Photo
+}
+
+func NewTestData() *testData {
 	users := getUserData()
 	albums := getAlbums(maps.Keys(users))
 	photos := getPhotos(maps.Keys(albums))
+	return &testData{
+		Users:  users,
+		Albums: albums,
+		Photos: photos,
+	}
+}
 
-	return data.NewData(users, albums, photos)
+func (testData *testData) GetUsers() []data.User {
+	return maps.Values(testData.Users)
+}
+
+func (testData *testData) GetAlbums() []data.Album {
+	return maps.Values(testData.Albums)
+}
+
+func (testData *testData) GetPhotos() []data.Photo {
+	return maps.Values(testData.Photos)
+}
+
+func (testData *testData) GetUser(id int) data.User {
+	if user, ok := testData.Users[id]; ok {
+		return user
+	}
+	return data.User{}
+}
+
+func (testData *testData) GetAlbum(id int) data.Album {
+	if album, ok := testData.Albums[id]; ok {
+		return album
+	}
+	return data.Album{}
+}
+
+func (testData *testData) GetPhoto(id int) data.Photo {
+	if photo, ok := testData.Photos[id]; ok {
+		return photo
+	}
+	return data.Photo{}
+}
+
+func (testData *testData) GetAlbumsByUserID(userID int) []data.Album {
+	albums := make([]data.Album, 0)
+
+	for _, album := range testData.Albums {
+		if album.UserID == userID {
+			albums = append(albums, album)
+		}
+	}
+
+	return albums
+}
+
+func (testData *testData) GetPhotosByAlbumID(albumID int) []data.Photo {
+	photos := make([]data.Photo, 0)
+
+	for _, photo := range testData.Photos {
+		if photo.AlbumID == albumID {
+			photos = append(photos, photo)
+		}
+	}
+
+	return photos
 }
 
 func getUserData() map[int]data.User {

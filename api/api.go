@@ -5,7 +5,6 @@ import (
 
 	"github.com/Dylan-Kentish/GraphQLFakeDataAPI/data"
 	"github.com/graphql-go/graphql"
-	"golang.org/x/exp/maps"
 )
 
 type API struct {
@@ -15,7 +14,7 @@ type API struct {
 	PhotoType *graphql.Object
 }
 
-func NewAPI(dataModel *data.Data) *API {
+func NewAPI(dataModel data.IData) *API {
 	photoType := graphql.NewObject(graphql.ObjectConfig{
 		Name:        "Photo",
 		Description: "A photo.",
@@ -173,7 +172,7 @@ func NewAPI(dataModel *data.Data) *API {
 					},
 				},
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-					albums := maps.Values(dataModel.Users)
+					albums := dataModel.GetUsers()
 					if limit, exists := p.Args["limit"].(int); exists {
 						return albums[:limit], nil
 					} else {
@@ -214,7 +213,7 @@ func NewAPI(dataModel *data.Data) *API {
 					if id, exists := p.Args["userid"].(int); exists {
 						albums = dataModel.GetAlbumsByUserID(id)
 					} else {
-						albums = maps.Values(dataModel.Albums)
+						albums = dataModel.GetAlbums()
 					}
 
 					if limit, exists := p.Args["limit"].(int); exists {
@@ -257,7 +256,7 @@ func NewAPI(dataModel *data.Data) *API {
 					if id, exists := p.Args["albumid"].(int); exists {
 						photos = dataModel.GetPhotosByAlbumID(id)
 					} else {
-						photos = maps.Values(dataModel.Photos)
+						photos = dataModel.GetPhotos()
 					}
 
 					if limit, exists := p.Args["limit"].(int); exists {
