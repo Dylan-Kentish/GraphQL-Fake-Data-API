@@ -1,7 +1,7 @@
 package api
 
 import (
-	"errors"
+	"fmt"
 
 	"github.com/Dylan-Kentish/GraphQLFakeDataAPI/data"
 	"github.com/graphql-go/graphql"
@@ -23,30 +23,27 @@ func NewAPI(dataModel data.IData) *API {
 				Type:        graphql.NewNonNull(graphql.Int),
 				Description: "The id of the photo.",
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-					if album, ok := p.Source.(data.Photo); ok {
-						return album.ID, nil
-					}
-					return nil, errors.New("source is not a Photo")
+					return resolveType(p, func(photo data.Photo) interface{} {
+						return photo.ID
+					})
 				},
 			},
 			"albumid": &graphql.Field{
 				Type:        graphql.NewNonNull(graphql.Int),
 				Description: "The id of the album.",
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-					if album, ok := p.Source.(data.Photo); ok {
-						return album.AlbumID, nil
-					}
-					return nil, errors.New("source is not a Photo")
+					return resolveType(p, func(photo data.Photo) interface{} {
+						return photo.AlbumID
+					})
 				},
 			},
 			"description": &graphql.Field{
 				Type:        graphql.String,
 				Description: "The description of the photo.",
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-					if album, ok := p.Source.(data.Photo); ok {
-						return album.Description, nil
-					}
-					return nil, errors.New("source is not a Photo")
+					return resolveType(p, func(photo data.Photo) interface{} {
+						return photo.Description
+					})
 				},
 			},
 		},
@@ -60,40 +57,36 @@ func NewAPI(dataModel data.IData) *API {
 				Type:        graphql.NewNonNull(graphql.Int),
 				Description: "The id of the album.",
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-					if album, ok := p.Source.(data.Album); ok {
-						return album.ID, nil
-					}
-					return nil, errors.New("source is not an Album")
+					return resolveType(p, func(album data.Album) interface{} {
+						return album.ID
+					})
 				},
 			},
 			"userid": &graphql.Field{
 				Type:        graphql.NewNonNull(graphql.Int),
 				Description: "The id of the user.",
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-					if album, ok := p.Source.(data.Album); ok {
-						return album.UserID, nil
-					}
-					return nil, errors.New("source is not an Album")
+					return resolveType(p, func(album data.Album) interface{} {
+						return album.UserID
+					})
 				},
 			},
 			"description": &graphql.Field{
 				Type:        graphql.String,
 				Description: "The description of the album.",
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-					if album, ok := p.Source.(data.Album); ok {
-						return album.Description, nil
-					}
-					return nil, errors.New("source is not an Album")
+					return resolveType(p, func(album data.Album) interface{} {
+						return album.Description
+					})
 				},
 			},
 			"photos": &graphql.Field{
 				Type:        graphql.NewList(photoType),
 				Description: "The albums photos.",
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-					if user, ok := p.Source.(data.Album); ok {
-						return dataModel.GetPhotosByAlbumID(user.ID), nil
-					}
-					return nil, errors.New("source is not an Album")
+					return resolveType(p, func(album data.Album) interface{} {
+						return dataModel.GetPhotosByAlbumID(album.ID)
+					})
 				},
 			},
 		},
@@ -107,40 +100,36 @@ func NewAPI(dataModel data.IData) *API {
 				Type:        graphql.NewNonNull(graphql.Int),
 				Description: "The id of the user.",
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-					if user, ok := p.Source.(data.User); ok {
-						return user.ID, nil
-					}
-					return nil, errors.New("source is not a User")
+					return resolveType(p, func(user data.User) interface{} {
+						return user.ID
+					})
 				},
 			},
 			"name": &graphql.Field{
 				Type:        graphql.String,
 				Description: "The name of the user.",
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-					if user, ok := p.Source.(data.User); ok {
-						return user.Name, nil
-					}
-					return nil, errors.New("source is not a User")
+					return resolveType(p, func(user data.User) interface{} {
+						return user.Name
+					})
 				},
 			},
 			"username": &graphql.Field{
 				Type:        graphql.String,
 				Description: "The username of the user.",
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-					if user, ok := p.Source.(data.User); ok {
-						return user.Username, nil
-					}
-					return nil, errors.New("source is not a User")
+					return resolveType(p, func(user data.User) interface{} {
+						return user.Username
+					})
 				},
 			},
 			"albums": &graphql.Field{
 				Type:        graphql.NewList(albumType),
 				Description: "The users albums.",
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-					if user, ok := p.Source.(data.User); ok {
-						return dataModel.GetAlbumsByUserID(user.ID), nil
-					}
-					return nil, errors.New("source is not a User")
+					return resolveType(p, func(user data.User) interface{} {
+						return dataModel.GetAlbumsByUserID(user.ID)
+					})
 				},
 			},
 		},
@@ -279,4 +268,11 @@ func NewAPI(dataModel data.IData) *API {
 		AlbumType: albumType,
 		PhotoType: photoType,
 	}
+}
+
+func resolveType[T any](p graphql.ResolveParams, onOk func(model T) interface{}) (interface{}, error) {
+	if model, ok := p.Source.(T); ok {
+		return onOk(model), nil
+	}
+	return nil, fmt.Errorf("source is not of type %T", *new(T))
 }
