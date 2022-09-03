@@ -15,23 +15,17 @@ import (
 var _ = Describe("Api", func() {
 	testData := testUtils.NewTestData()
 
-	photoTests := make([]TableEntry, len(testData.Photos))
-	for i, photo := range testData.Photos {
-		idString := fmt.Sprint(photo.ID)
-		photoTests[i] = Entry(idString, photo.ID)
-	}
+	photoTests := utils.TransformValues(testData.Photos, func(v data.Photo) TableEntry {
+		return Entry(fmt.Sprint(v.ID), v.ID)
+	})
 
-	albumTests := make([]TableEntry, len(testData.Albums))
-	for i, album := range testData.Albums {
-		idString := fmt.Sprint(album.ID)
-		albumTests[i] = Entry(idString, album.ID)
-	}
+	albumTests := utils.TransformValues(testData.Albums, func(v data.Album) TableEntry {
+		return Entry(fmt.Sprint(v.ID), v.ID)
+	})
 
-	userTests := make([]TableEntry, len(testData.Users))
-	for i, user := range testData.Users {
-		idString := fmt.Sprint(user.ID)
-		userTests[i] = Entry(idString, user.ID)
-	}
+	userTests := utils.TransformValues(testData.Users, func(v data.User) TableEntry {
+		return Entry(fmt.Sprint(v.ID), v.ID)
+	})
 
 	var api *API
 
