@@ -1,4 +1,4 @@
-package testUtils
+package api
 
 import (
 	"encoding/json"
@@ -8,7 +8,7 @@ import (
 	"golang.org/x/exp/maps"
 )
 
-func ConvertFieldDefinitionToQueryString(item *graphql.FieldDefinition) string {
+func convertFieldDefinitionToQueryString(item *graphql.FieldDefinition) string {
 	value := item.Name
 
 	if list, ok := item.Type.(*graphql.List); ok {
@@ -16,7 +16,7 @@ func ConvertFieldDefinitionToQueryString(item *graphql.FieldDefinition) string {
 			subFieldsMap := obj.Fields()
 			if len(subFieldsMap) > 0 {
 				field := maps.Values(subFieldsMap)[0]
-				value += fmt.Sprintf("{%s}", ConvertFieldDefinitionToQueryString(field))
+				value += fmt.Sprintf("{%s}", convertFieldDefinitionToQueryString(field))
 			}
 		}
 	}
@@ -24,7 +24,7 @@ func ConvertFieldDefinitionToQueryString(item *graphql.FieldDefinition) string {
 	return value
 }
 
-func GetData[T any](r *graphql.Result, key string) T {
+func getData[T any](r *graphql.Result, key string) T {
 	result := r.Data.(map[string]interface{})
 	return convertTo[T](result[key])
 }

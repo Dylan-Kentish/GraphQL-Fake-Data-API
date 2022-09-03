@@ -1,4 +1,4 @@
-package testUtils
+package api
 
 import (
 	"fmt"
@@ -19,6 +19,8 @@ type testData struct {
 	Photos map[int]data.Photo
 }
 
+// Public so that main.go can access it.
+// This should be private once a 'real' data source has been added.
 func NewTestData() *testData {
 	users := getUserData()
 	albums := getAlbums(maps.Keys(users))

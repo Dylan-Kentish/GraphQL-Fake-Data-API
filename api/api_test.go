@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/Dylan-Kentish/GraphQLFakeDataAPI/data"
-	"github.com/Dylan-Kentish/GraphQLFakeDataAPI/testUtils"
 	"github.com/Dylan-Kentish/GraphQLFakeDataAPI/utils"
 	"github.com/graphql-go/graphql"
 	. "github.com/onsi/ginkgo/v2"
@@ -13,7 +12,7 @@ import (
 )
 
 var _ = Describe("Api", func() {
-	testData := testUtils.NewTestData()
+	testData := NewTestData()
 
 	photoTests := utils.TransformValues(testData.Photos, func(v data.Photo) TableEntry {
 		return Entry(fmt.Sprint(v.ID), v.ID)
@@ -41,7 +40,7 @@ var _ = Describe("Api", func() {
 			r := graphql.Do(params)
 			Expect(r.Errors).To(BeEmpty())
 
-			album := testUtils.GetData[data.Album](r, "album")
+			album := getData[data.Album](r, "album")
 
 			Expect(album).To(Equal(data.Album{}))
 		})
@@ -53,7 +52,7 @@ var _ = Describe("Api", func() {
 			r := graphql.Do(params)
 			Expect(r.Errors).To(BeEmpty())
 
-			album := testUtils.GetData[data.Album](r, "album")
+			album := getData[data.Album](r, "album")
 
 			Expect(album).To(Equal(testData.Albums[id]))
 		}, albumTests)
@@ -65,7 +64,7 @@ var _ = Describe("Api", func() {
 			r := graphql.Do(params)
 			Expect(r.Errors).To(BeEmpty())
 
-			albums := testUtils.GetData[[]data.Album](r, "albums")
+			albums := getData[[]data.Album](r, "albums")
 
 			expected := utils.ValuesWhere(testData.Albums, func(album data.Album) bool { return album.UserID == userId })
 
@@ -79,7 +78,7 @@ var _ = Describe("Api", func() {
 			r := graphql.Do(params)
 			Expect(r.Errors).To(BeEmpty())
 
-			albums := testUtils.GetData[[]data.Album](r, "albums")
+			albums := getData[[]data.Album](r, "albums")
 
 			Expect(albums).To(ContainElements(maps.Values(testData.Albums)))
 		})
@@ -90,7 +89,7 @@ var _ = Describe("Api", func() {
 			r := graphql.Do(params)
 			Expect(r.Errors).To(BeEmpty())
 
-			album := testUtils.GetData[data.Album](r, "album")
+			album := getData[data.Album](r, "album")
 
 			expected := utils.ValuesWhere(testData.Photos, func(photo data.Photo) bool { return photo.AlbumID == id })
 
@@ -105,7 +104,7 @@ var _ = Describe("Api", func() {
 			r := graphql.Do(params)
 			Expect(r.Errors).To(BeEmpty())
 
-			albums := testUtils.GetData[[]data.Album](r, "albums")
+			albums := getData[[]data.Album](r, "albums")
 
 			Expect(albums).To(HaveLen(limit))
 		})
@@ -119,7 +118,7 @@ var _ = Describe("Api", func() {
 			r := graphql.Do(params)
 			Expect(r.Errors).To(BeEmpty())
 
-			photo := testUtils.GetData[data.Photo](r, "photo")
+			photo := getData[data.Photo](r, "photo")
 
 			Expect(photo).To(Equal(data.Photo{}))
 		})
@@ -131,7 +130,7 @@ var _ = Describe("Api", func() {
 			r := graphql.Do(params)
 			Expect(r.Errors).To(BeEmpty())
 
-			photo := testUtils.GetData[data.Photo](r, "photo")
+			photo := getData[data.Photo](r, "photo")
 
 			Expect(photo).To(Equal(testData.Photos[id]))
 		}, photoTests)
@@ -143,7 +142,7 @@ var _ = Describe("Api", func() {
 			r := graphql.Do(params)
 			Expect(r.Errors).To(BeEmpty())
 
-			photos := testUtils.GetData[[]data.Photo](r, "photos")
+			photos := getData[[]data.Photo](r, "photos")
 
 			expected := utils.ValuesWhere(testData.Photos, func(photo data.Photo) bool { return photo.AlbumID == albumId })
 
@@ -157,7 +156,7 @@ var _ = Describe("Api", func() {
 			r := graphql.Do(params)
 			Expect(r.Errors).To(BeEmpty())
 
-			photos := testUtils.GetData[[]data.Photo](r, "photos")
+			photos := getData[[]data.Photo](r, "photos")
 
 			Expect(photos).To(ContainElements(maps.Values(testData.Photos)))
 		})
@@ -170,7 +169,7 @@ var _ = Describe("Api", func() {
 			r := graphql.Do(params)
 			Expect(r.Errors).To(BeEmpty())
 
-			photos := testUtils.GetData[[]data.Photo](r, "photos")
+			photos := getData[[]data.Photo](r, "photos")
 
 			Expect(photos).To(HaveLen(limit))
 		})
@@ -184,7 +183,7 @@ var _ = Describe("Api", func() {
 			r := graphql.Do(params)
 			Expect(r.Errors).To(BeEmpty())
 
-			user := testUtils.GetData[data.User](r, "user")
+			user := getData[data.User](r, "user")
 
 			Expect(user).To(Equal(data.User{}))
 		})
@@ -196,7 +195,7 @@ var _ = Describe("Api", func() {
 			r := graphql.Do(params)
 			Expect(r.Errors).To(BeEmpty())
 
-			user := testUtils.GetData[data.User](r, "user")
+			user := getData[data.User](r, "user")
 
 			Expect(user).To(Equal(testData.Users[id]))
 		}, userTests)
@@ -208,7 +207,7 @@ var _ = Describe("Api", func() {
 			r := graphql.Do(params)
 			Expect(r.Errors).To(BeEmpty())
 
-			users := testUtils.GetData[[]data.User](r, "users")
+			users := getData[[]data.User](r, "users")
 
 			Expect(users).To(ContainElements(maps.Values(testData.Users)))
 		})
@@ -219,7 +218,7 @@ var _ = Describe("Api", func() {
 			r := graphql.Do(params)
 			Expect(r.Errors).To(BeEmpty())
 
-			user := testUtils.GetData[data.User](r, "user")
+			user := getData[data.User](r, "user")
 
 			expected := utils.ValuesWhere(testData.Albums, func(album data.Album) bool { return album.UserID == id })
 
@@ -234,7 +233,7 @@ var _ = Describe("Api", func() {
 			r := graphql.Do(params)
 			Expect(r.Errors).To(BeEmpty())
 
-			users := testUtils.GetData[[]data.User](r, "users")
+			users := getData[[]data.User](r, "users")
 
 			Expect(users).To(HaveLen(limit))
 		})
@@ -251,7 +250,7 @@ var _ = Describe("Api", func() {
 		})
 
 		It("User fields", func() {
-			queries := utils.TransformValues(api.UserType.Fields(), testUtils.ConvertFieldDefinitionToQueryString)
+			queries := utils.TransformValues(api.UserType.Fields(), convertFieldDefinitionToQueryString)
 			for _, query := range queries {
 				// Query
 				query := fmt.Sprintf(`{user(id:0){%s}}`, query)
@@ -263,7 +262,7 @@ var _ = Describe("Api", func() {
 		})
 
 		It("Photo fields", func() {
-			queries := utils.TransformValues(api.PhotoType.Fields(), testUtils.ConvertFieldDefinitionToQueryString)
+			queries := utils.TransformValues(api.PhotoType.Fields(), convertFieldDefinitionToQueryString)
 			for _, query := range queries {
 				// Query
 				query := fmt.Sprintf(`{photo(id:0){%s}}`, query)
@@ -275,7 +274,7 @@ var _ = Describe("Api", func() {
 		})
 
 		It("Album fields", func() {
-			queries := utils.TransformValues(api.AlbumType.Fields(), testUtils.ConvertFieldDefinitionToQueryString)
+			queries := utils.TransformValues(api.AlbumType.Fields(), convertFieldDefinitionToQueryString)
 			for _, query := range queries {
 				// Query
 				query := fmt.Sprintf(`{album(id:0){%s}}`, query)
