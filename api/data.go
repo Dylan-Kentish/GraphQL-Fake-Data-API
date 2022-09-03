@@ -74,6 +74,18 @@ func (data *data) getAlbumsByUserID(userID int) []Album {
 	return albums
 }
 
+func (data *data) getPhotosByAlbumID(albumID int) []Photo {
+	photos := make([]Photo, 0)
+
+	for _, photo := range data.Photos {
+		if photo.AlbumID == albumID {
+			photos = append(photos, photo)
+		}
+	}
+
+	return photos
+}
+
 func getUserData() map[int]User {
 	users := make(map[int]User, 0)
 	for i := 0; i < numberOfUsers; i++ {
