@@ -5,6 +5,7 @@ import (
 
 	"github.com/Dylan-Kentish/GraphQLFakeDataAPI/data"
 	"github.com/Dylan-Kentish/GraphQLFakeDataAPI/testUtils"
+	"github.com/Dylan-Kentish/GraphQLFakeDataAPI/utils"
 	"github.com/graphql-go/graphql"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -67,13 +68,7 @@ var _ = Describe("Api", func() {
 
 			albums := testUtils.GetData[[]data.Album](r, "albums")
 
-			expected := make([]data.Album, 0)
-
-			for _, album := range testData.Albums {
-				if album.UserID == userId {
-					expected = append(expected, album)
-				}
-			}
+			expected := utils.ValuesWhere(testData.Albums, func(album data.Album) bool { return album.UserID == userId })
 
 			Expect(albums).To(ContainElements(expected))
 		}, userTests)
@@ -98,13 +93,7 @@ var _ = Describe("Api", func() {
 
 			album := testUtils.GetData[data.Album](r, "album")
 
-			expected := make([]data.Photo, 0)
-
-			for _, photo := range testData.Photos {
-				if photo.AlbumID == id {
-					expected = append(expected, photo)
-				}
-			}
+			expected := utils.ValuesWhere(testData.Photos, func(photo data.Photo) bool { return photo.AlbumID == id })
 
 			Expect(album.Photos).To(ContainElements(expected))
 		}, userTests)
@@ -196,13 +185,7 @@ var _ = Describe("Api", func() {
 
 			photos := testUtils.GetData[[]data.Photo](r, "photos")
 
-			expected := make([]data.Photo, 0)
-
-			for _, photo := range testData.Photos {
-				if photo.AlbumID == albumId {
-					expected = append(expected, photo)
-				}
-			}
+			expected := utils.ValuesWhere(testData.Photos, func(photo data.Photo) bool { return photo.AlbumID == albumId })
 
 			Expect(photos).To(ContainElements(expected))
 		}, userTests)
@@ -316,13 +299,7 @@ var _ = Describe("Api", func() {
 
 			user := testUtils.GetData[data.User](r, "user")
 
-			expected := make([]data.Album, 0)
-
-			for _, album := range testData.Albums {
-				if album.UserID == id {
-					expected = append(expected, album)
-				}
-			}
+			expected := utils.ValuesWhere(testData.Albums, func(album data.Album) bool { return album.UserID == id })
 
 			Expect(user.Albums).To(ContainElements(expected))
 		}, userTests)
