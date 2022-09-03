@@ -3,12 +3,17 @@ package utils
 import "golang.org/x/exp/maps"
 
 // Transform applies the transformation to every item in the slice m and returns the result.
-func Transform[M []T, T any, K any](m M, transformation func(item T) K) []K {
-	r := make([]K, 0, len(m))
+func Transform[T []U, U any, V any](m T, transformation func(item U) V) []V {
+	r := make([]V, 0, len(m))
 	for _, v := range m {
 		r = append(r, transformation(v))
 	}
 	return r
+}
+
+// TransformValues applies the transformation to every value in the map m and returns the resulting slice.
+func TransformValues[T ~map[W]U, U any, V any, W comparable](m T, transformation func(item U) V) []V {
+	return Transform(maps.Values(m), transformation)
 }
 
 // Returns all items that match the condition.

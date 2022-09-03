@@ -24,6 +24,23 @@ var _ = Describe("Transform", func() {
 	})
 })
 
+var _ = Describe("TransformValues", func() {
+	It("Transforms each value", func() {
+		count := 10
+		m := make(map[int]int, count)
+		expected := make([]string, count)
+
+		for i := 0; i < count; i++ {
+			m[i] = i
+			expected[i] = fmt.Sprint(i)
+		}
+
+		result := TransformValues(m, func(i int) string { return fmt.Sprint(i) })
+
+		Expect(result).To(ContainElements(expected))
+	})
+})
+
 var _ = Describe("Where", func() {
 	It("Filters slice", func() {
 		count := 10
