@@ -63,7 +63,7 @@ var _ = Describe("Photos", func() {
 
 		result := r.Data.(map[string]interface{})
 		var Photos []api.Photo
-		convertTo(result["Photos"], &Photos)
+		convertTo(result["photos"], &Photos)
 
 		expected := make([]api.Photo, 0)
 
