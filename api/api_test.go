@@ -4,7 +4,8 @@ import (
 	"fmt"
 
 	"github.com/Dylan-Kentish/GraphQLFakeDataAPI/data"
-	"github.com/Dylan-Kentish/GraphQLFakeDataAPI/tests/testData"
+	"github.com/Dylan-Kentish/GraphQLFakeDataAPI/testUtils"
+	"github.com/Dylan-Kentish/GraphQLFakeDataAPI/utils"
 	"github.com/graphql-go/graphql"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -12,23 +13,28 @@ import (
 )
 
 var _ = Describe("Api", func() {
+	testData := testUtils.NewTestData()
+	testApi := NewAPI(testData)
+
+	photoTests := make([]TableEntry, len(testData.Photos))
+	for i, photo := range testData.Photos {
+		idString := fmt.Sprint(photo.ID)
+		photoTests[i] = Entry(idString, photo.ID)
+	}
+
+	albumTests := make([]TableEntry, len(testData.Albums))
+	for i, album := range testData.Albums {
+		idString := fmt.Sprint(album.ID)
+		albumTests[i] = Entry(idString, album.ID)
+	}
+
+	userTests := make([]TableEntry, len(testData.Users))
+	for i, user := range testData.Users {
+		idString := fmt.Sprint(user.ID)
+		userTests[i] = Entry(idString, user.ID)
+	}
+
 	Context("Albums", func() {
-
-		testData := testData.NewTestData()
-		testApi := NewAPI(testData)
-
-		albumTests := make([]TableEntry, len(testData.Albums))
-		for i, album := range testData.Albums {
-			idString := fmt.Sprint(album.ID)
-			albumTests[i] = Entry(idString, album.ID)
-		}
-
-		userTests := make([]TableEntry, len(testData.Users))
-		for i, user := range testData.Users {
-			idString := fmt.Sprint(user.ID)
-			userTests[i] = Entry(idString, user.ID)
-		}
-
 		It("Invalid ID", func() {
 			// Query
 			query := `{album(id:-1){id,userid,description}}`
@@ -38,7 +44,7 @@ var _ = Describe("Api", func() {
 
 			result := r.Data.(map[string]interface{})
 			var album data.Album
-			convertTo(result["album"], &album)
+			utils.ConvertTo(result["album"], &album)
 
 			Expect(album).To(Equal(data.Album{}))
 		})
@@ -52,7 +58,7 @@ var _ = Describe("Api", func() {
 
 			result := r.Data.(map[string]interface{})
 			var album data.Album
-			convertTo(result["album"], &album)
+			utils.ConvertTo(result["album"], &album)
 
 			Expect(album).To(Equal(testData.Albums[id]))
 		}, albumTests)
@@ -66,7 +72,7 @@ var _ = Describe("Api", func() {
 
 			result := r.Data.(map[string]interface{})
 			var albums []data.Album
-			convertTo(result["albums"], &albums)
+			utils.ConvertTo(result["albums"], &albums)
 
 			expected := make([]data.Album, 0)
 
@@ -88,7 +94,7 @@ var _ = Describe("Api", func() {
 
 			result := r.Data.(map[string]interface{})
 			var albums []data.Album
-			convertTo(result["albums"], &albums)
+			utils.ConvertTo(result["albums"], &albums)
 
 			Expect(albums).To(ContainElements(maps.Values(testData.Albums)))
 		})
@@ -101,7 +107,7 @@ var _ = Describe("Api", func() {
 
 			result := r.Data.(map[string]interface{})
 			var album data.Album
-			convertTo(result["album"], &album)
+			utils.ConvertTo(result["album"], &album)
 
 			expected := make([]data.Photo, 0)
 
@@ -124,7 +130,7 @@ var _ = Describe("Api", func() {
 
 			result := r.Data.(map[string]interface{})
 			var albums []data.Album
-			convertTo(result["albums"], &albums)
+			utils.ConvertTo(result["albums"], &albums)
 
 			Expect(albums).To(HaveLen(limit))
 		})
@@ -170,21 +176,6 @@ var _ = Describe("Api", func() {
 	})
 
 	Context("Photos", func() {
-		testData := testData.NewTestData()
-		testApi := NewAPI(testData)
-
-		photoTests := make([]TableEntry, len(testData.Photos))
-		for i, photo := range testData.Photos {
-			idString := fmt.Sprint(photo.ID)
-			photoTests[i] = Entry(idString, photo.ID)
-		}
-
-		userTests := make([]TableEntry, len(testData.Users))
-		for i, user := range testData.Users {
-			idString := fmt.Sprint(user.ID)
-			userTests[i] = Entry(idString, user.ID)
-		}
-
 		It("Invalid ID", func() {
 			// Query
 			query := `{photo(id:-1){id,albumid,description}}`
@@ -194,7 +185,7 @@ var _ = Describe("Api", func() {
 
 			result := r.Data.(map[string]interface{})
 			var photo data.Photo
-			convertTo(result["photo"], &photo)
+			utils.ConvertTo(result["photo"], &photo)
 
 			Expect(photo).To(Equal(data.Photo{}))
 		})
@@ -208,7 +199,7 @@ var _ = Describe("Api", func() {
 
 			result := r.Data.(map[string]interface{})
 			var photo data.Photo
-			convertTo(result["photo"], &photo)
+			utils.ConvertTo(result["photo"], &photo)
 
 			Expect(photo).To(Equal(testData.Photos[id]))
 		}, photoTests)
@@ -222,7 +213,7 @@ var _ = Describe("Api", func() {
 
 			result := r.Data.(map[string]interface{})
 			var Photos []data.Photo
-			convertTo(result["photos"], &Photos)
+			utils.ConvertTo(result["photos"], &Photos)
 
 			expected := make([]data.Photo, 0)
 
@@ -244,7 +235,7 @@ var _ = Describe("Api", func() {
 
 			result := r.Data.(map[string]interface{})
 			var Photos []data.Photo
-			convertTo(result["photos"], &Photos)
+			utils.ConvertTo(result["photos"], &Photos)
 
 			Expect(Photos).To(ContainElements(maps.Values(testData.Photos)))
 		})
@@ -259,7 +250,7 @@ var _ = Describe("Api", func() {
 
 			result := r.Data.(map[string]interface{})
 			var Photos []data.Photo
-			convertTo(result["photos"], &Photos)
+			utils.ConvertTo(result["photos"], &Photos)
 
 			Expect(Photos).To(HaveLen(limit))
 		})
@@ -304,15 +295,6 @@ var _ = Describe("Api", func() {
 	})
 
 	Context("Users", func() {
-		testData := testData.NewTestData()
-		testApi := NewAPI(testData)
-
-		userTests := make([]TableEntry, len(testData.Users))
-		for i, user := range testData.Users {
-			idString := fmt.Sprint(user.ID)
-			userTests[i] = Entry(idString, user.ID)
-		}
-
 		It("Invalid ID", func() {
 			// Query
 			query := `{user(id:-1){id,name,username}}`
@@ -322,7 +304,7 @@ var _ = Describe("Api", func() {
 
 			result := r.Data.(map[string]interface{})
 			var user data.User
-			convertTo(result["user"], &user)
+			utils.ConvertTo(result["user"], &user)
 
 			Expect(user).To(Equal(data.User{}))
 		})
@@ -336,7 +318,7 @@ var _ = Describe("Api", func() {
 
 			result := r.Data.(map[string]interface{})
 			var user data.User
-			convertTo(result["user"], &user)
+			utils.ConvertTo(result["user"], &user)
 
 			Expect(user).To(Equal(testData.Users[id]))
 		}, userTests)
@@ -350,7 +332,7 @@ var _ = Describe("Api", func() {
 
 			result := r.Data.(map[string]interface{})
 			var users []data.User
-			convertTo(result["users"], &users)
+			utils.ConvertTo(result["users"], &users)
 
 			Expect(users).To(ContainElements(maps.Values(testData.Users)))
 		})
@@ -363,7 +345,7 @@ var _ = Describe("Api", func() {
 
 			result := r.Data.(map[string]interface{})
 			var user data.User
-			convertTo(result["user"], &user)
+			utils.ConvertTo(result["user"], &user)
 
 			expected := make([]data.Album, 0)
 
@@ -386,7 +368,7 @@ var _ = Describe("Api", func() {
 
 			result := r.Data.(map[string]interface{})
 			var users []data.User
-			convertTo(result["users"], &users)
+			utils.ConvertTo(result["users"], &users)
 
 			Expect(users).To(HaveLen(limit))
 		})
