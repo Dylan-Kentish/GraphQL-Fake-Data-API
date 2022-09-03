@@ -4,6 +4,8 @@ import (
 	"fmt"
 
 	"github.com/Dylan-Kentish/GraphQLFakeDataAPI/api"
+	"github.com/Dylan-Kentish/GraphQLFakeDataAPI/data"
+	"github.com/Dylan-Kentish/GraphQLFakeDataAPI/tests/testData"
 	"github.com/graphql-go/graphql"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -11,17 +13,17 @@ import (
 )
 
 var _ = Describe("Albums", func() {
-	data := api.NewData()
-	testApi := api.NewAPI(data)
+	testData := testData.NewTestData()
+	testApi := api.NewAPI(testData)
 
-	albumTests := make([]TableEntry, len(data.Albums))
-	for i, album := range data.Albums {
+	albumTests := make([]TableEntry, len(testData.Albums))
+	for i, album := range testData.Albums {
 		idString := fmt.Sprint(album.ID)
 		albumTests[i] = Entry(idString, album.ID)
 	}
 
-	userTests := make([]TableEntry, len(data.Users))
-	for i, user := range data.Users {
+	userTests := make([]TableEntry, len(testData.Users))
+	for i, user := range testData.Users {
 		idString := fmt.Sprint(user.ID)
 		userTests[i] = Entry(idString, user.ID)
 	}
@@ -34,10 +36,10 @@ var _ = Describe("Albums", func() {
 		Expect(r.Errors).To(BeEmpty())
 
 		result := r.Data.(map[string]interface{})
-		var album api.Album
+		var album data.Album
 		convertTo(result["album"], &album)
 
-		Expect(album).To(Equal(api.Album{}))
+		Expect(album).To(Equal(data.Album{}))
 	})
 
 	DescribeTable("Get album by ID", func(id int) {
@@ -48,10 +50,10 @@ var _ = Describe("Albums", func() {
 		Expect(r.Errors).To(BeEmpty())
 
 		result := r.Data.(map[string]interface{})
-		var album api.Album
+		var album data.Album
 		convertTo(result["album"], &album)
 
-		Expect(album).To(Equal(data.Albums[id]))
+		Expect(album).To(Equal(testData.Albums[id]))
 	}, albumTests)
 
 	DescribeTable("Get album by userID", func(userId int) {
@@ -62,12 +64,12 @@ var _ = Describe("Albums", func() {
 		Expect(r.Errors).To(BeEmpty())
 
 		result := r.Data.(map[string]interface{})
-		var albums []api.Album
+		var albums []data.Album
 		convertTo(result["albums"], &albums)
 
-		expected := make([]api.Album, 0)
+		expected := make([]data.Album, 0)
 
-		for _, album := range data.Albums {
+		for _, album := range testData.Albums {
 			if album.UserID == userId {
 				expected = append(expected, album)
 			}
@@ -84,10 +86,10 @@ var _ = Describe("Albums", func() {
 		Expect(r.Errors).To(BeEmpty())
 
 		result := r.Data.(map[string]interface{})
-		var albums []api.Album
+		var albums []data.Album
 		convertTo(result["albums"], &albums)
 
-		Expect(albums).To(ContainElements(maps.Values(data.Albums)))
+		Expect(albums).To(ContainElements(maps.Values(testData.Albums)))
 	})
 
 	DescribeTable("Get album photos", func(id int) {
@@ -97,12 +99,12 @@ var _ = Describe("Albums", func() {
 		Expect(r.Errors).To(BeEmpty())
 
 		result := r.Data.(map[string]interface{})
-		var album api.Album
+		var album data.Album
 		convertTo(result["album"], &album)
 
-		expected := make([]api.Photo, 0)
+		expected := make([]data.Photo, 0)
 
-		for _, photo := range data.Photos {
+		for _, photo := range testData.Photos {
 			if photo.AlbumID == id {
 				expected = append(expected, photo)
 			}
@@ -120,7 +122,7 @@ var _ = Describe("Albums", func() {
 		Expect(r.Errors).To(BeEmpty())
 
 		result := r.Data.(map[string]interface{})
-		var albums []api.Album
+		var albums []data.Album
 		convertTo(result["albums"], &albums)
 
 		Expect(albums).To(HaveLen(limit))
@@ -141,7 +143,7 @@ var _ = Describe("Albums", func() {
 					},
 					Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 						// Wrong type
-						return api.User{}, nil
+						return data.User{}, nil
 					},
 				},
 			},

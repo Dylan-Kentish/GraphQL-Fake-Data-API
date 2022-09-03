@@ -4,6 +4,8 @@ import (
 	"fmt"
 
 	"github.com/Dylan-Kentish/GraphQLFakeDataAPI/api"
+	"github.com/Dylan-Kentish/GraphQLFakeDataAPI/data"
+	"github.com/Dylan-Kentish/GraphQLFakeDataAPI/tests/testData"
 	"github.com/graphql-go/graphql"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -11,17 +13,17 @@ import (
 )
 
 var _ = Describe("Photos", func() {
-	data := api.NewData()
-	testApi := api.NewAPI(data)
+	testData := testData.NewTestData()
+	testApi := api.NewAPI(testData)
 
-	photoTests := make([]TableEntry, len(data.Photos))
-	for i, photo := range data.Photos {
+	photoTests := make([]TableEntry, len(testData.Photos))
+	for i, photo := range testData.Photos {
 		idString := fmt.Sprint(photo.ID)
 		photoTests[i] = Entry(idString, photo.ID)
 	}
 
-	userTests := make([]TableEntry, len(data.Users))
-	for i, user := range data.Users {
+	userTests := make([]TableEntry, len(testData.Users))
+	for i, user := range testData.Users {
 		idString := fmt.Sprint(user.ID)
 		userTests[i] = Entry(idString, user.ID)
 	}
@@ -34,10 +36,10 @@ var _ = Describe("Photos", func() {
 		Expect(r.Errors).To(BeEmpty())
 
 		result := r.Data.(map[string]interface{})
-		var photo api.Photo
+		var photo data.Photo
 		convertTo(result["photo"], &photo)
 
-		Expect(photo).To(Equal(api.Photo{}))
+		Expect(photo).To(Equal(data.Photo{}))
 	})
 
 	DescribeTable("Get photo by ID", func(id int) {
@@ -48,10 +50,10 @@ var _ = Describe("Photos", func() {
 		Expect(r.Errors).To(BeEmpty())
 
 		result := r.Data.(map[string]interface{})
-		var photo api.Photo
+		var photo data.Photo
 		convertTo(result["photo"], &photo)
 
-		Expect(photo).To(Equal(data.Photos[id]))
+		Expect(photo).To(Equal(testData.Photos[id]))
 	}, photoTests)
 
 	DescribeTable("Get photo by albumID", func(albumId int) {
@@ -62,12 +64,12 @@ var _ = Describe("Photos", func() {
 		Expect(r.Errors).To(BeEmpty())
 
 		result := r.Data.(map[string]interface{})
-		var Photos []api.Photo
+		var Photos []data.Photo
 		convertTo(result["photos"], &Photos)
 
-		expected := make([]api.Photo, 0)
+		expected := make([]data.Photo, 0)
 
-		for _, photo := range data.Photos {
+		for _, photo := range testData.Photos {
 			if photo.AlbumID == albumId {
 				expected = append(expected, photo)
 			}
@@ -84,10 +86,10 @@ var _ = Describe("Photos", func() {
 		Expect(r.Errors).To(BeEmpty())
 
 		result := r.Data.(map[string]interface{})
-		var Photos []api.Photo
+		var Photos []data.Photo
 		convertTo(result["photos"], &Photos)
 
-		Expect(Photos).To(ContainElements(maps.Values(data.Photos)))
+		Expect(Photos).To(ContainElements(maps.Values(testData.Photos)))
 	})
 
 	It("Get limited Photos", func() {
@@ -99,7 +101,7 @@ var _ = Describe("Photos", func() {
 		Expect(r.Errors).To(BeEmpty())
 
 		result := r.Data.(map[string]interface{})
-		var Photos []api.Photo
+		var Photos []data.Photo
 		convertTo(result["photos"], &Photos)
 
 		Expect(Photos).To(HaveLen(limit))
@@ -120,7 +122,7 @@ var _ = Describe("Photos", func() {
 					},
 					Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 						// Wrong type
-						return api.User{}, nil
+						return data.User{}, nil
 					},
 				},
 			},

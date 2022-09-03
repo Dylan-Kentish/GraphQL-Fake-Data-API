@@ -5,11 +5,12 @@ import (
 	"net/http"
 
 	"github.com/Dylan-Kentish/GraphQLFakeDataAPI/api"
+	"github.com/Dylan-Kentish/GraphQLFakeDataAPI/tests/testData"
 	"github.com/graphql-go/handler"
 )
 
 func main() {
-	data := api.NewData()
+	data := testData.NewTestData()
 	api := api.NewAPI(data)
 
 	h := handler.New(&handler.Config{
