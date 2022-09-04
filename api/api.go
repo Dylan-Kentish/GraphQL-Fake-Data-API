@@ -84,9 +84,15 @@ func NewAPI(dataModel data.IData) *API {
 			"photos": &graphql.Field{
 				Type:        graphql.NewList(photoType),
 				Description: "The albums photos.",
+				Args: graphql.FieldConfigArgument{
+					"limit": &graphql.ArgumentConfig{
+						Description: "limit the number of users",
+						Type:        graphql.Int,
+					},
+				},
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 					return resolveType(p, func(album data.Album) interface{} {
-						return dataModel.GetPhotosByAlbumID(album.ID)
+						return utils.TryLimitIfPresent(dataModel.GetPhotosByAlbumID(album.ID), p.Args)
 					})
 				},
 			},
@@ -127,9 +133,15 @@ func NewAPI(dataModel data.IData) *API {
 			"albums": &graphql.Field{
 				Type:        graphql.NewList(albumType),
 				Description: "The users albums.",
+				Args: graphql.FieldConfigArgument{
+					"limit": &graphql.ArgumentConfig{
+						Description: "limit the number of users",
+						Type:        graphql.Int,
+					},
+				},
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 					return resolveType(p, func(user data.User) interface{} {
-						return dataModel.GetAlbumsByUserID(user.ID)
+						return utils.TryLimitIfPresent(dataModel.GetAlbumsByUserID(user.ID), p.Args)
 					})
 				},
 			},
