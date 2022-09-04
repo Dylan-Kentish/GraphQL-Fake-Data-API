@@ -9,7 +9,7 @@ type User struct {
 	Password []byte
 }
 
-type AuthenticationToken struct {
+type Authentication struct {
 	Token string
 	User  User
 }
