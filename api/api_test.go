@@ -32,63 +32,68 @@ var _ = Describe("Api", func() {
 	})
 
 	Context("Albums", func() {
-		It("Invalid ID", func() {
+		var variables map[string]interface{}
+		var params graphql.Params
+		var query string
 
-			query := `{album(id:-1){id,userid,description}}`
-			params := graphql.Params{Schema: api.Schema, RequestString: query}
-			r := graphql.Do(params)
-			Expect(r.Errors).To(BeEmpty())
-
-			album := getData[data.Album](r, "album")
-
-			Expect(album).To(Equal(data.Album{}))
+		BeforeEach(func() {
+			variables = make(map[string]interface{})
+			params = graphql.Params{
+				Schema:         api.Schema,
+				VariableValues: variables,
+			}
 		})
 
-		DescribeTable("Get album by ID", func(id int) {
-			expected := testData.GetAlbum(id)
-
-			query := fmt.Sprintf(`{album(id:%v){id,userid,description}}`, id)
-			params := graphql.Params{Schema: api.Schema, RequestString: query}
-			r := graphql.Do(params)
-			Expect(r.Errors).To(BeEmpty())
-
-			album := getData[data.Album](r, "album")
-
-			Expect(album).To(Equal(expected))
-		}, albumTests)
-
-		DescribeTable("Get album by userID", func(id int) {
-			expected := testData.GetAlbumsByUserID(id)
-
-			query := fmt.Sprintf(`{albums(userid:%v){id,userid,description}}`, id)
-			params := graphql.Params{Schema: api.Schema, RequestString: query}
-			r := graphql.Do(params)
-			Expect(r.Errors).To(BeEmpty())
-
-			albums := getData[[]data.Album](r, "albums")
-
-			Expect(albums).To(Equal(expected))
-		}, userTests)
-
-		It("Get all albums", func() {
-			expected := testData.GetAlbums()
-
-			query := `{albums{id,userid,description}}`
-			params := graphql.Params{Schema: api.Schema, RequestString: query}
-			r := graphql.Do(params)
-			Expect(r.Errors).To(BeEmpty())
-
-			albums := getData[[]data.Album](r, "albums")
-
-			Expect(albums).To(Equal(expected))
+		JustBeforeEach(func() {
+			params.RequestString = query
 		})
 
-		Context("Album Photos", func() {
+		Context("album", func() {
+			BeforeEach(func() {
+				query = `
+					query ($id: Int!, $withPhotos: Boolean = false, $limit: Int) {
+						album(id:$id){
+							id
+							userid
+							description
+							photos(limit:$limit) @include(if: $withPhotos) {
+								id
+								albumid
+								description
+							}
+						}
+					}`
+				variables["limit"] = nil
+			})
+
+			It("Invalid ID", func() {
+				variables["id"] = -1
+
+				r := graphql.Do(params)
+				Expect(r.Errors).To(BeEmpty())
+
+				album := getData[data.Album](r, "album")
+
+				Expect(album).To(Equal(data.Album{}))
+			})
+
+			DescribeTable("Get album by ID", func(id int) {
+				variables["id"] = id
+				expected := testData.GetAlbum(id)
+
+				r := graphql.Do(params)
+				Expect(r.Errors).To(BeEmpty())
+
+				album := getData[data.Album](r, "album")
+
+				Expect(album).To(Equal(expected))
+			}, albumTests)
+
 			DescribeTable("Get all album photos", func(id int) {
+				variables["id"] = id
+				variables["withPhotos"] = true
 				expected := testData.GetPhotosByAlbumID(id)
 
-				query := fmt.Sprintf(`{album(id:%v){id,photos{id,albumid,description}}}`, id)
-				params := graphql.Params{Schema: api.Schema, RequestString: query}
 				r := graphql.Do(params)
 				Expect(r.Errors).To(BeEmpty())
 
@@ -97,59 +102,147 @@ var _ = Describe("Api", func() {
 				Expect(album.Photos).To(Equal(expected))
 			}, userTests)
 
-			It("Get limited album photos less than size", func() {
-				limit := len(testData.GetPhotosByAlbumID(0)) - 1
+			Context("limited album photos", func() {
+				var limit int
+				var albumId = 0
+				JustBeforeEach(func() {
+					variables["id"] = albumId
+					variables["withPhotos"] = true
+					variables["limit"] = limit
+				})
 
-				query := fmt.Sprintf(`{album(id:0){id,photos(limit:%v){id,albumid,description}}}`, limit)
-				params := graphql.Params{Schema: api.Schema, RequestString: query}
-				r := graphql.Do(params)
-				Expect(r.Errors).To(BeEmpty())
+				When("limited less than size", func() {
+					BeforeEach(func() {
+						limit = len(testData.GetPhotosByAlbumID(albumId)) - 1
+					})
 
-				album := getData[data.Album](r, "album")
+					It("returns limit", func() {
+						r := graphql.Do(params)
+						Expect(r.Errors).To(BeEmpty())
 
-				Expect(album.Photos).To(HaveLen(limit))
-			})
+						album := getData[data.Album](r, "album")
 
-			It("Get limited album photos greater than size", func() {
-				expected := len(testData.GetPhotosByAlbumID(0))
-				limit := expected + 1
+						Expect(album.Photos).To(HaveLen(limit))
+					})
+				})
 
-				query := fmt.Sprintf(`{album(id:0){id,photos(limit:%v){id,albumid,description}}}`, limit)
-				params := graphql.Params{Schema: api.Schema, RequestString: query}
-				r := graphql.Do(params)
-				Expect(r.Errors).To(BeEmpty())
+				When("limited greter than size", func() {
+					BeforeEach(func() {
+						limit = len(testData.GetPhotosByAlbumID(albumId)) + 1
+					})
 
-				album := getData[data.Album](r, "album")
+					It("returns size", func() {
+						expected := len(testData.GetPhotosByAlbumID(albumId))
 
-				Expect(album.Photos).To(HaveLen(expected))
+						r := graphql.Do(params)
+						Expect(r.Errors).To(BeEmpty())
+
+						album := getData[data.Album](r, "album")
+
+						Expect(album.Photos).To(HaveLen(expected))
+					})
+				})
 			})
 		})
 
-		It("Get limited albums less than size", func() {
-			limit := len(testData.GetAlbums()) - 1
+		Context("albums", func() {
+			BeforeEach(func() {
+				query = `
+				query {
+					albums {
+						id
+						userid
+						description
+					}
+				}`
+			})
 
-			query := fmt.Sprintf(`{albums(limit:%v){id,userid,description}}`, limit)
-			params := graphql.Params{Schema: api.Schema, RequestString: query}
-			r := graphql.Do(params)
-			Expect(r.Errors).To(BeEmpty())
+			It("Get all albums", func() {
+				expected := testData.GetAlbums()
 
-			albums := getData[[]data.Album](r, "albums")
+				r := graphql.Do(params)
+				Expect(r.Errors).To(BeEmpty())
 
-			Expect(albums).To(HaveLen(limit))
-		})
+				albums := getData[[]data.Album](r, "albums")
 
-		It("Get limited albums greater than size", func() {
-			expected := len(testData.GetAlbums())
-			limit := expected + 1
+				Expect(albums).To(Equal(expected))
+			})
 
-			query := fmt.Sprintf(`{albums(limit:%v){id,userid,description}}`, limit)
-			params := graphql.Params{Schema: api.Schema, RequestString: query}
-			r := graphql.Do(params)
-			Expect(r.Errors).To(BeEmpty())
+			Context("albums by userID", func() {
+				BeforeEach(func() {
+					query = `
+					query ($id: Int!) {
+						albums(userid: $id) {
+							id
+							userid
+							description
+						}
+					}`
+				})
 
-			albums := getData[[]data.Album](r, "albums")
+				DescribeTable("Get albums by userID", func(id int) {
+					variables["id"] = id
+					expected := testData.GetAlbumsByUserID(id)
 
-			Expect(albums).To(HaveLen(expected))
+					r := graphql.Do(params)
+					Expect(r.Errors).To(BeEmpty())
+
+					albums := getData[[]data.Album](r, "albums")
+
+					Expect(albums).To(Equal(expected))
+				}, userTests)
+			})
+
+			Context("limited albums", func() {
+				var limit int
+
+				BeforeEach(func() {
+					query = `
+						query ($limit: Int!) {
+							albums(limit:$limit) {
+								id
+								userid
+								description
+							}
+						}`
+				})
+
+				JustBeforeEach(func() {
+					variables["limit"] = limit
+				})
+
+				When("limited less than size", func() {
+					BeforeEach(func() {
+						limit = len(testData.GetAlbums()) - 1
+					})
+
+					It("returns limit", func() {
+						r := graphql.Do(params)
+						Expect(r.Errors).To(BeEmpty())
+
+						albums := getData[[]data.Album](r, "albums")
+
+						Expect(albums).To(HaveLen(limit))
+					})
+				})
+
+				When("limited greter than size", func() {
+					BeforeEach(func() {
+						limit = len(testData.GetAlbums()) + 1
+					})
+
+					It("returns size", func() {
+						expected := len(testData.GetAlbums())
+
+						r := graphql.Do(params)
+						Expect(r.Errors).To(BeEmpty())
+
+						albums := getData[[]data.Album](r, "albums")
+
+						Expect(albums).To(HaveLen(expected))
+					})
+				})
+			})
 		})
 	})
 
