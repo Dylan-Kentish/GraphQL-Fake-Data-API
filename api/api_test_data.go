@@ -5,6 +5,7 @@ import (
 
 	"github.com/Dylan-Kentish/GraphQLFakeDataAPI/data"
 	"github.com/Dylan-Kentish/GraphQLFakeDataAPI/utils"
+	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/exp/maps"
 )
 
@@ -88,12 +89,13 @@ func getUserData() map[int]data.User {
 	users := make(map[int]data.User, 0)
 	for i := 0; i < numberOfUsers; i++ {
 		iString := fmt.Sprint(i)
+		hashedPass, _ := bcrypt.GenerateFromPassword([]byte("Password"+iString), 10)
 		users[i] = data.User{
-			ID:       i,
-			Name:     "User " + iString,
-			Username: "User" + iString,
-			Email:    "User" + iString + "@email.co.uk",
-			Password: []byte("Password" + iString),
+			ID:           i,
+			Name:         "User " + iString,
+			Username:     "User" + iString,
+			Email:        "User" + iString + "@email.co.uk",
+			PasswordHash: string(hashedPass[:]),
 		}
 	}
 
