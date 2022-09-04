@@ -1,12 +1,12 @@
 package data
 
 type User struct {
-	ID       int
-	Name     string
-	Username string
-	Albums   []Album
-	Email    string
-	Password []byte
+	ID           int
+	Name         string
+	Username     string
+	Albums       []Album
+	Email        string
+	PasswordHash string
 }
 
 type Authentication struct {
