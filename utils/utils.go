@@ -17,8 +17,8 @@ func Transform[S []T, T any, U any](m S, transformation func(item T) U) []U {
 }
 
 // TransformValues applies the transformation to every value in the map m and returns the resulting slice.
-func TransformValues[M ~map[T]U, T comparable, U any, V any](m M, transformation func(item U) V) []V {
-	return Transform(maps.Values(m), transformation)
+func TransformValues[M ~map[T]U, T constraints.Ordered, U any, V any](m M, transformation func(item U) V) []V {
+	return Transform(OrderedValues(m), transformation)
 }
 
 // Returns all items that match the condition.
@@ -33,8 +33,8 @@ func Where[S []T, T any](m S, condition func(item T) bool) S {
 }
 
 // Returns all values that match the condition.
-func ValuesWhere[M map[T]U, T comparable, U any](m M, condition func(item U) bool) []U {
-	return Where(maps.Values(m), condition)
+func ValuesWhere[M map[T]U, T constraints.Ordered, U any](m M, condition func(item U) bool) []U {
+	return Where(OrderedValues(m), condition)
 }
 
 func TryLimitIfPresent[S []T, T any](s S, Args map[string]interface{}) []T {

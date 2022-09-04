@@ -8,7 +8,6 @@ import (
 	"github.com/graphql-go/graphql"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"golang.org/x/exp/maps"
 )
 
 var _ = Describe("Api", func() {
@@ -80,7 +79,7 @@ var _ = Describe("Api", func() {
 
 			albums := getData[[]data.Album](r, "albums")
 
-			Expect(albums).To(ContainElements(maps.Values(testData.Albums)))
+			Expect(albums).To(Equal(testData.GetAlbums()))
 		})
 
 		Context("Album Photos", func() {
@@ -200,7 +199,7 @@ var _ = Describe("Api", func() {
 
 			photos := getData[[]data.Photo](r, "photos")
 
-			Expect(photos).To(ContainElements(maps.Values(testData.Photos)))
+			Expect(photos).To(Equal(testData.GetPhotos()))
 		})
 
 		It("Get limited Photos less than length", func() {
@@ -264,7 +263,7 @@ var _ = Describe("Api", func() {
 
 			users := getData[[]data.User](r, "users")
 
-			Expect(users).To(ContainElements(maps.Values(testData.Users)))
+			Expect(users).To(Equal(testData.GetUsers()))
 		})
 
 		Context("user albums", func() {

@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/Dylan-Kentish/GraphQLFakeDataAPI/data"
+	"github.com/Dylan-Kentish/GraphQLFakeDataAPI/utils"
 	"golang.org/x/exp/maps"
 )
 
@@ -33,15 +34,15 @@ func NewTestData() *testData {
 }
 
 func (testData *testData) GetUsers() []data.User {
-	return maps.Values(testData.Users)
+	return utils.OrderedValues(testData.Users)
 }
 
 func (testData *testData) GetAlbums() []data.Album {
-	return maps.Values(testData.Albums)
+	return utils.OrderedValues(testData.Albums)
 }
 
 func (testData *testData) GetPhotos() []data.Photo {
-	return maps.Values(testData.Photos)
+	return utils.OrderedValues(testData.Photos)
 }
 
 func (testData *testData) GetUser(id int) data.User {
