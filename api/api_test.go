@@ -13,6 +13,9 @@ import (
 var _ = Describe("Api", func() {
 	testData := NewTestData()
 
+	var api *API
+
+	Context("Valid Schema", func() {
 	photoTests := utils.Transform(testData.GetPhotos(), func(v data.Photo) TableEntry {
 		return Entry(fmt.Sprint(v.ID), v.ID)
 	})
@@ -25,9 +28,6 @@ var _ = Describe("Api", func() {
 		return Entry(fmt.Sprint(v.ID), v.ID)
 	})
 
-	var api *API
-
-	Context("Valid Schema", func() {
 		var variables map[string]interface{}
 		var params graphql.Params
 		var query string
@@ -550,6 +550,75 @@ var _ = Describe("Api", func() {
 					Expect(r.Errors).To(HaveLen(1))
 					Expect(r.Errors[0].Message).To(Equal("source is not of type data.Album"))
 				}
+			})
+		})
+	})
+
+	Context("Authentication", func() {
+		var variables map[string]interface{}
+		var params graphql.Params
+		var mutation string
+
+		BeforeEach(func() {
+			api = NewAPI(testData)
+			variables = make(map[string]interface{})
+			params = graphql.Params{
+				Schema:         api.Schema,
+				VariableValues: variables,
+			}
+		})
+
+		JustBeforeEach(func() {
+			params.RequestString = mutation
+		})
+
+		When("login", func() {
+			BeforeEach(func() {
+				mutation = `
+					mutation ($email: String!, $password: String!) {
+						login(email:$email, password:$password){
+							token
+							user {
+								id
+							}
+						}
+					}`
+			})
+
+			It("Authenticates valid data", func() {
+				user := testData.GetUser(0)
+				variables["email"] = user.Email
+				variables["password"] = "Password0"
+
+				r := graphql.Do(params)
+				Expect(r.Errors).To(BeEmpty())
+
+				authentication := getData[data.Authentication](r, "authentication")
+
+				Expect(authentication.Token).ToNot(BeNil())
+				Expect(authentication.User.ID).To(Equal(user.ID))
+			})
+
+		})
+
+		When("Invalid Credentials", func() {
+			It("Rejects invalid email", func() {
+				variables["email"] = "not their email"
+				variables["password"] = "Password0"
+
+				r := graphql.Do(params)
+				Expect(r.Errors).To(HaveLen(1))
+				Expect(r.Errors[0].Message).To(Equal("invalid email or password"))
+			})
+
+			It("Rejects invalid password", func() {
+				user := testData.GetUser(0)
+				variables["email"] = user.Email
+				variables["password"] = "not their password"
+
+				r := graphql.Do(params)
+				Expect(r.Errors).To(HaveLen(1))
+				Expect(r.Errors[0].Message).To(Equal("invalid email or password"))
 			})
 		})
 	})
