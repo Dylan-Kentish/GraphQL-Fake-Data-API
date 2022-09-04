@@ -26,44 +26,39 @@ var _ = Describe("Api", func() {
 	})
 
 	var api *API
+	var variables map[string]interface{}
+	var params graphql.Params
+	var query string
 
 	BeforeEach(func() {
 		api = NewAPI(testData)
+		variables = make(map[string]interface{})
+		params = graphql.Params{
+			Schema:         api.Schema,
+			VariableValues: variables,
+		}
+	})
+
+	JustBeforeEach(func() {
+		params.RequestString = query
 	})
 
 	Context("Albums", func() {
-		var variables map[string]interface{}
-		var params graphql.Params
-		var query string
-
-		BeforeEach(func() {
-			variables = make(map[string]interface{})
-			params = graphql.Params{
-				Schema:         api.Schema,
-				VariableValues: variables,
-			}
-		})
-
-		JustBeforeEach(func() {
-			params.RequestString = query
-		})
-
 		Context("album", func() {
 			BeforeEach(func() {
 				query = `
-					query ($id: Int!, $withPhotos: Boolean = false, $limit: Int) {
+					query ($id: Int!, $withPhotos: Boolean = false) {
 						album(id:$id){
 							id
 							userid
 							description
-							photos(limit:$limit) @include(if: $withPhotos) {
+							photos @include(if: $withPhotos) {
 								id
 								albumid
 								description
 							}
 						}
 					}`
-				variables["limit"] = nil
 			})
 
 			It("Invalid ID", func() {
@@ -105,9 +100,25 @@ var _ = Describe("Api", func() {
 			Context("limited album photos", func() {
 				var limit int
 				var albumId = 0
+
+				BeforeEach(func() {
+					query = `
+						query ($id: Int!, $limit: Int) {
+							album(id:$id){
+								id
+								userid
+								description
+								photos(limit:$limit) {
+									id
+									albumid
+									description
+								}
+							}
+						}`
+				})
+
 				JustBeforeEach(func() {
 					variables["id"] = albumId
-					variables["withPhotos"] = true
 					variables["limit"] = limit
 				})
 
