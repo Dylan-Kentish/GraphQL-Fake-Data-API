@@ -151,7 +151,7 @@ var _ = Describe("OrderedValues", func() {
 	})
 })
 
-var _ = FDescribe("Single", func() {
+var _ = Describe("Single", func() {
 	slice := make([]int, 5)
 
 	BeforeEach(func() {
