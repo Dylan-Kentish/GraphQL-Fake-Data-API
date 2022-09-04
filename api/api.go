@@ -130,6 +130,24 @@ func NewAPI(dataModel data.IData) *API {
 					})
 				},
 			},
+			"email": &graphql.Field{
+				Type:        graphql.String,
+				Description: "The email of the user.",
+				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+					return resolveType(p, func(user data.User) interface{} {
+						return user.Email
+					})
+				},
+			},
+			"passwordHash": &graphql.Field{
+				Type:        graphql.String,
+				Description: "The password hash of the user.",
+				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+					return resolveType(p, func(user data.User) interface{} {
+						return string(user.PasswordHash[:])
+					})
+				},
+			},
 			"albums": &graphql.Field{
 				Type:        graphql.NewList(albumType),
 				Description: "The users albums.",
