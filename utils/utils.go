@@ -1,6 +1,8 @@
 package utils
 
-import "golang.org/x/exp/maps"
+import (
+	"golang.org/x/exp/maps"
+)
 
 // Transform applies the transformation to every item in the slice m and returns the result.
 func Transform[T []U, U any, V any](m T, transformation func(item U) V) []V {
@@ -30,4 +32,13 @@ func Where[M []T, T any](m M, condition func(item T) bool) M {
 // Returns all values that match the condition.
 func ValuesWhere[M map[K]T, T any, K comparable](m M, condition func(item T) bool) []T {
 	return Where(maps.Values(m), condition)
+}
+
+func TryLimitIfPresent[S []T, T any](s S, Args map[string]interface{}) []T {
+	if limit, exists := Args["limit"].(int); exists &&
+		limit < len(s) {
+		return s[:limit]
+	}
+
+	return s
 }

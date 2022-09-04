@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/Dylan-Kentish/GraphQLFakeDataAPI/data"
+	"github.com/Dylan-Kentish/GraphQLFakeDataAPI/utils"
 	"github.com/graphql-go/graphql"
 )
 
@@ -161,13 +162,7 @@ func NewAPI(dataModel data.IData) *API {
 					},
 				},
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-					users := dataModel.GetUsers()
-					if limit, exists := p.Args["limit"].(int); exists &&
-						limit < len(users) {
-						return users[:limit], nil
-					}
-					return users, nil
-
+					return utils.TryLimitIfPresent(dataModel.GetUsers(), p.Args), nil
 				},
 			},
 			"album": &graphql.Field{
@@ -206,11 +201,7 @@ func NewAPI(dataModel data.IData) *API {
 						albums = dataModel.GetAlbums()
 					}
 
-					if limit, exists := p.Args["limit"].(int); exists &&
-						limit < len(albums) {
-						return albums[:limit], nil
-					}
-					return albums, nil
+					return utils.TryLimitIfPresent(albums, p.Args), nil
 				},
 			},
 			"photo": &graphql.Field{
@@ -249,12 +240,7 @@ func NewAPI(dataModel data.IData) *API {
 						photos = dataModel.GetPhotos()
 					}
 
-					if limit, exists := p.Args["limit"].(int); exists &&
-						limit < len(photos) {
-						return photos[:limit], nil
-					} else {
-						return photos, nil
-					}
+					return utils.TryLimitIfPresent(photos, p.Args), nil
 				},
 			},
 		},
