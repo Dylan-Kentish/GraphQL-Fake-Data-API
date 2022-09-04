@@ -66,6 +66,12 @@ func (testData *testData) GetPhoto(id int) data.Photo {
 	return data.Photo{}
 }
 
+func (testData *testData) GetUserWithEmail(email string) (*data.User, error) {
+	return utils.Single(testData.GetUsers(), func(user data.User) bool {
+		return user.Email == email
+	})
+}
+
 func (testData *testData) GetAlbumsByUserID(userID int) []data.Album {
 	return utils.ValuesWhere(testData.albums, func(album data.Album) bool {
 		return album.UserID == userID
