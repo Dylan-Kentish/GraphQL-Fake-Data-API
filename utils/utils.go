@@ -51,7 +51,7 @@ func OrderedValues[M ~map[T]U, T constraints.Ordered, U any](m M) []U {
 	keys := maps.Keys(m)
 
 	sort.Slice(keys, func(i, j int) bool {
-		return keys[i] > keys[j]
+		return keys[i] < keys[j]
 	})
 
 	result := make([]U, 0)
