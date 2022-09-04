@@ -92,6 +92,8 @@ func getUserData() map[int]data.User {
 			ID:       i,
 			Name:     "User " + iString,
 			Username: "User" + iString,
+			Email:    "User" + iString + "@email.co.uk",
+			Password: []byte("Password" + iString),
 		}
 	}
 
