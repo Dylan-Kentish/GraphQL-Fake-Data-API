@@ -1,12 +1,19 @@
 package api
 
 import (
+	"errors"
 	"fmt"
+	"strconv"
+	"time"
 
 	"github.com/Dylan-Kentish/GraphQLFakeDataAPI/data"
 	"github.com/Dylan-Kentish/GraphQLFakeDataAPI/utils"
+	"github.com/golang-jwt/jwt/v4"
 	"github.com/graphql-go/graphql"
+	"golang.org/x/crypto/bcrypt"
 )
+
+var secretKey = "This is very secret!"
 
 type API struct {
 	Schema    graphql.Schema
@@ -276,8 +283,81 @@ func NewAPI(dataModel data.IData) *API {
 		},
 	})
 
+	authenticationType := graphql.NewObject(graphql.ObjectConfig{
+		Name: "Authentication",
+		Fields: graphql.Fields{
+			"token": &graphql.Field{
+				Type:        graphql.String,
+				Description: "Authentication token",
+				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+					return resolveType(p, func(auth data.Authentication) interface{} {
+						return auth.Token
+					})
+				},
+			},
+			"user": &graphql.Field{
+				Type:        userType,
+				Description: "User",
+				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+					return resolveType(p, func(auth data.Authentication) interface{} {
+						return auth.User
+					})
+				},
+			},
+		},
+	})
+
+	mutationType := graphql.NewObject(graphql.ObjectConfig{
+		Name: "Mutation",
+		Fields: graphql.Fields{
+			"login": &graphql.Field{
+				Type:        authenticationType,
+				Description: "User authentication",
+				Args: graphql.FieldConfigArgument{
+					"email": &graphql.ArgumentConfig{
+						Description: "email of the user",
+						Type:        graphql.NewNonNull(graphql.String),
+					},
+					"password": &graphql.ArgumentConfig{
+						Description: "password of the user",
+						Type:        graphql.NewNonNull(graphql.String),
+					},
+				},
+				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+					user, err := dataModel.GetUserWithEmail(p.Args["email"].(string))
+
+					if err != nil {
+						return nil, errors.New("invalid email or password")
+					}
+
+					if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(p.Args["password"].(string))); err != nil {
+						return nil, errors.New("invalid email or password")
+					}
+
+					claims := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.RegisteredClaims{
+						Issuer:    strconv.Itoa(user.ID),
+						ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour)),
+					})
+
+					token, err := claims.SignedString([]byte(secretKey))
+
+					if err != nil {
+						// What would cause this to happen?
+						return nil, errors.New("login failed")
+					}
+
+					return data.Authentication{
+						Token: token,
+						User:  *user,
+					}, nil
+				},
+			},
+		},
+	})
+
 	schema, _ := graphql.NewSchema(graphql.SchemaConfig{
-		Query: queryType,
+		Query:    queryType,
+		Mutation: mutationType,
 	})
 
 	return &API{
