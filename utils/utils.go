@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"errors"
 	"sort"
 
 	"golang.org/x/exp/constraints"
@@ -61,4 +62,17 @@ func OrderedValues[M ~map[T]U, T constraints.Ordered, U any](m M) []U {
 	}
 
 	return result
+}
+
+func Single[S []T, T any](s S, condition func(item T) bool) (*T, error) {
+	matches := Where(s, condition)
+
+	switch len(matches) {
+	case 0:
+		return nil, errors.New("no items match the condition")
+	case 1:
+		return &matches[0], nil
+	default:
+		return nil, errors.New("multiple items match the condition")
+	}
 }

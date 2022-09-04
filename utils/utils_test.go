@@ -150,3 +150,50 @@ var _ = Describe("OrderedValues", func() {
 		Expect(result).To(Equal(expected))
 	})
 })
+
+var _ = FDescribe("Single", func() {
+	slice := make([]int, 5)
+
+	BeforeEach(func() {
+		for i := 0; i < len(slice); i++ {
+			slice[i] = 0
+		}
+	})
+
+	When("no matches", func() {
+		It("returns an error", func() {
+			match, err := Single(slice, func(item int) bool {
+				return item == 1
+			})
+
+			Expect(match).To(BeNil())
+			Expect(err).To(MatchError("no items match the condition"))
+		})
+	})
+
+	When("one matches", func() {
+		BeforeEach(func() {
+			slice[2] = 1
+		})
+
+		It("returns the match", func() {
+			match, err := Single(slice, func(item int) bool {
+				return item == 1
+			})
+
+			Expect(*match).To(Equal(1))
+			Expect(err).To(BeNil())
+		})
+	})
+
+	When("multiple matches", func() {
+		It("returns an error", func() {
+			match, err := Single(slice, func(item int) bool {
+				return item == 0
+			})
+
+			Expect(match).To(BeNil())
+			Expect(err).To(MatchError("multiple items match the condition"))
+		})
+	})
+})
