@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/Dylan-Kentish/GraphQLFakeDataAPI/data"
+	"github.com/Dylan-Kentish/GraphQLFakeDataAPI/utils"
 	"golang.org/x/exp/maps"
 )
 
@@ -14,79 +15,67 @@ const (
 )
 
 type testData struct {
-	Users  map[int]data.User
-	Albums map[int]data.Album
-	Photos map[int]data.Photo
+	users  map[int]data.User
+	albums map[int]data.Album
+	photos map[int]data.Photo
 }
 
 // Public so that main.go can access it.
 // This should be private once a 'real' data source has been added.
-func NewTestData() *testData {
+func NewTestData() data.IData {
 	users := getUserData()
 	albums := getAlbums(maps.Keys(users))
 	photos := getPhotos(maps.Keys(albums))
 	return &testData{
-		Users:  users,
-		Albums: albums,
-		Photos: photos,
+		users:  users,
+		albums: albums,
+		photos: photos,
 	}
 }
 
 func (testData *testData) GetUsers() []data.User {
-	return maps.Values(testData.Users)
+	return utils.OrderedValues(testData.users)
 }
 
 func (testData *testData) GetAlbums() []data.Album {
-	return maps.Values(testData.Albums)
+	return utils.OrderedValues(testData.albums)
 }
 
 func (testData *testData) GetPhotos() []data.Photo {
-	return maps.Values(testData.Photos)
+	return utils.OrderedValues(testData.photos)
 }
 
 func (testData *testData) GetUser(id int) data.User {
-	if user, ok := testData.Users[id]; ok {
+	if user, ok := testData.users[id]; ok {
 		return user
 	}
 	return data.User{}
 }
 
 func (testData *testData) GetAlbum(id int) data.Album {
-	if album, ok := testData.Albums[id]; ok {
+	if album, ok := testData.albums[id]; ok {
 		return album
 	}
 	return data.Album{}
 }
 
 func (testData *testData) GetPhoto(id int) data.Photo {
-	if photo, ok := testData.Photos[id]; ok {
+	if photo, ok := testData.photos[id]; ok {
 		return photo
 	}
 	return data.Photo{}
 }
 
 func (testData *testData) GetAlbumsByUserID(userID int) []data.Album {
-	albums := make([]data.Album, 0)
-
-	for _, album := range testData.Albums {
-		if album.UserID == userID {
-			albums = append(albums, album)
-		}
-	}
-
-	return albums
+	return utils.ValuesWhere(testData.albums, func(album data.Album) bool {
+		return album.UserID == userID
+	})
 }
 
 func (testData *testData) GetPhotosByAlbumID(albumID int) []data.Photo {
-	photos := make([]data.Photo, 0)
-
-	for _, photo := range testData.Photos {
-		if photo.AlbumID == albumID {
-			photos = append(photos, photo)
-		}
-	}
-
-	return photos
+	return utils.ValuesWhere(testData.photos, func(photo data.Photo) bool {
+		return photo.AlbumID == albumID
+	})
 }
 
 func getUserData() map[int]data.User {

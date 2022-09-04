@@ -131,3 +131,20 @@ var _ = Describe("TryLimitIfPresent", func() {
 		})
 	})
 })
+
+var _ = Describe("OrderedValues", func() {
+	It("returns the values in order", func() {
+		count := 10
+		m := make(map[int]int, count)
+		expected := make([]int, count)
+
+		for i := 0; i < count; i++ {
+			m[i] = count - i - 1
+			expected[i] = i
+		}
+
+		result := OrderedValues(m)
+
+		Expect(result).To(Equal(expected))
+	})
+})
