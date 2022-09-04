@@ -398,7 +398,7 @@ var _ = Describe("Api", func() {
 
 		Context("Users", func() {
 			It("Invalid ID", func() {
-				query := `{user(id:-1){id,name,username}}`
+				query := `{user(id:-1){id,name,username,email,passwordHash}}`
 				params := graphql.Params{Schema: api.Schema, RequestString: query}
 				r := graphql.Do(params)
 				Expect(r.Errors).To(BeEmpty())
@@ -411,7 +411,7 @@ var _ = Describe("Api", func() {
 			DescribeTable("Get user by ID", func(id int) {
 				expected := testData.GetUser(id)
 
-				query := fmt.Sprintf(`{user(id:%v){id,name,username}}`, id)
+				query := fmt.Sprintf(`{user(id:%v){id,name,username,email,passwordHash}}`, id)
 				params := graphql.Params{Schema: api.Schema, RequestString: query}
 				r := graphql.Do(params)
 				Expect(r.Errors).To(BeEmpty())
@@ -424,7 +424,7 @@ var _ = Describe("Api", func() {
 			It("Get all users", func() {
 				expected := testData.GetUsers()
 
-				query := `{users{id,name,username}}`
+				query := `{users{id,name,username,email,passwordHash}}`
 				params := graphql.Params{Schema: api.Schema, RequestString: query}
 				r := graphql.Do(params)
 				Expect(r.Errors).To(BeEmpty())
