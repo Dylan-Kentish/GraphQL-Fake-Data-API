@@ -138,8 +138,10 @@ var _ = Describe("OrderedValues", func() {
 		m := make(map[int]int, count)
 		expected := make([]int, count)
 
+		for i := count - 1; i >= 0; i-- {
+			m[i] = i
+		}
 		for i := 0; i < count; i++ {
-			m[i] = count - i - 1
 			expected[i] = i
 		}
 
