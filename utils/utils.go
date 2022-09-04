@@ -1,6 +1,9 @@
 package utils
 
 import (
+	"sort"
+
+	"golang.org/x/exp/constraints"
 	"golang.org/x/exp/maps"
 )
 
@@ -41,4 +44,21 @@ func TryLimitIfPresent[S []T, T any](s S, Args map[string]interface{}) []T {
 	}
 
 	return s
+}
+
+// OrderedValues returns the values sorted by Key
+func OrderedValues[M ~map[T]U, T constraints.Ordered, U any](m M) []U {
+	keys := maps.Keys(m)
+
+	sort.Slice(keys, func(i, j int) bool {
+		return keys[i] > keys[j]
+	})
+
+	result := make([]U, 0)
+
+	for _, key := range keys {
+		result = append(result, m[key])
+	}
+
+	return result
 }
