@@ -161,12 +161,13 @@ func NewAPI(dataModel data.IData) *API {
 					},
 				},
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-					albums := dataModel.GetUsers()
-					if limit, exists := p.Args["limit"].(int); exists {
-						return albums[:limit], nil
-					} else {
-						return albums, nil
+					users := dataModel.GetUsers()
+					if limit, exists := p.Args["limit"].(int); exists &&
+						limit < len(users) {
+						return users[:limit], nil
 					}
+					return users, nil
+
 				},
 			},
 			"album": &graphql.Field{
@@ -205,11 +206,11 @@ func NewAPI(dataModel data.IData) *API {
 						albums = dataModel.GetAlbums()
 					}
 
-					if limit, exists := p.Args["limit"].(int); exists {
+					if limit, exists := p.Args["limit"].(int); exists &&
+						limit < len(albums) {
 						return albums[:limit], nil
-					} else {
-						return albums, nil
 					}
+					return albums, nil
 				},
 			},
 			"photo": &graphql.Field{
@@ -227,7 +228,7 @@ func NewAPI(dataModel data.IData) *API {
 			},
 			"photos": &graphql.Field{
 				Type:        graphql.NewList(photoType),
-				Description: "All albums",
+				Description: "All photos",
 				Args: graphql.FieldConfigArgument{
 					"albumid": &graphql.ArgumentConfig{
 						Description: "id of the album",
@@ -248,7 +249,8 @@ func NewAPI(dataModel data.IData) *API {
 						photos = dataModel.GetPhotos()
 					}
 
-					if limit, exists := p.Args["limit"].(int); exists {
+					if limit, exists := p.Args["limit"].(int); exists &&
+						limit < len(photos) {
 						return photos[:limit], nil
 					} else {
 						return photos, nil
