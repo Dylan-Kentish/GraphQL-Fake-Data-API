@@ -5,6 +5,7 @@ import (
 
 	"github.com/Dylan-Kentish/GraphQLFakeDataAPI/data"
 	"github.com/Dylan-Kentish/GraphQLFakeDataAPI/utils"
+	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/exp/maps"
 )
 
@@ -66,6 +67,12 @@ func (testData *testData) GetPhoto(id int) data.Photo {
 	return data.Photo{}
 }
 
+func (testData *testData) GetUserWithEmail(email string) (*data.User, error) {
+	return utils.Single(testData.GetUsers(), func(user data.User) bool {
+		return user.Email == email
+	})
+}
+
 func (testData *testData) GetAlbumsByUserID(userID int) []data.Album {
 	return utils.ValuesWhere(testData.albums, func(album data.Album) bool {
 		return album.UserID == userID
@@ -82,10 +89,13 @@ func getUserData() map[int]data.User {
 	users := make(map[int]data.User, 0)
 	for i := 0; i < numberOfUsers; i++ {
 		iString := fmt.Sprint(i)
+		hashedPass, _ := bcrypt.GenerateFromPassword([]byte("Password"+iString), 10)
 		users[i] = data.User{
-			ID:       i,
-			Name:     "User " + iString,
-			Username: "User" + iString,
+			ID:           i,
+			Name:         "User " + iString,
+			Username:     "User" + iString,
+			Email:        "User" + iString + "@email.co.uk",
+			PasswordHash: string(hashedPass[:]),
 		}
 	}
 

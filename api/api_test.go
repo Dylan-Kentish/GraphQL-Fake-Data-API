@@ -13,27 +13,28 @@ import (
 var _ = Describe("Api", func() {
 	testData := NewTestData()
 
-	photoTests := utils.Transform(testData.GetPhotos(), func(v data.Photo) TableEntry {
-		return Entry(fmt.Sprint(v.ID), v.ID)
-	})
-
-	albumTests := utils.Transform(testData.GetAlbums(), func(v data.Album) TableEntry {
-		return Entry(fmt.Sprint(v.ID), v.ID)
-	})
-
-	userTests := utils.Transform(testData.GetUsers(), func(v data.User) TableEntry {
-		return Entry(fmt.Sprint(v.ID), v.ID)
-	})
-
 	var api *API
 
 	Context("Valid Schema", func() {
+		photoTests := utils.Transform(testData.GetPhotos(), func(v data.Photo) TableEntry {
+			return Entry(fmt.Sprint(v.ID), v.ID)
+		})
+
+		albumTests := utils.Transform(testData.GetAlbums(), func(v data.Album) TableEntry {
+			return Entry(fmt.Sprint(v.ID), v.ID)
+		})
+
+		userTests := utils.Transform(testData.GetUsers(), func(v data.User) TableEntry {
+			return Entry(fmt.Sprint(v.ID), v.ID)
+		})
+
 		var variables map[string]interface{}
 		var params graphql.Params
 		var query string
 
 		BeforeEach(func() {
-			api = NewAPI(testData)
+			auth := NewAuthenticationProvider()
+			api = NewAPI(testData, auth)
 			variables = make(map[string]interface{})
 			params = graphql.Params{
 				Schema:         api.Schema,
@@ -397,49 +398,52 @@ var _ = Describe("Api", func() {
 		})
 
 		Context("Users", func() {
-			It("Invalid ID", func() {
-				query := `{user(id:-1){id,name,username}}`
-				params := graphql.Params{Schema: api.Schema, RequestString: query}
-				r := graphql.Do(params)
-				Expect(r.Errors).To(BeEmpty())
+			Context("user", func() {
+				BeforeEach(func() {
+					query = `
+						query ($id: Int!, $withPhotos: Boolean = false) {
+							user(id:$id){
+								id
+								name
+								username
+								email
+								passwordHash
+								albums @include(if: $withPhotos) {
+									id
+									userid
+									description
+								}
+							}
+						}`
+				})
 
-				user := getData[data.User](r, "user")
+				It("Invalid ID", func() {
+					variables["id"] = -1
+					r := graphql.Do(params)
+					Expect(r.Errors).To(BeEmpty())
 
-				Expect(user).To(Equal(data.User{}))
-			})
+					user := getData[data.User](r, "user")
 
-			DescribeTable("Get user by ID", func(id int) {
-				expected := testData.GetUser(id)
+					Expect(user).To(Equal(data.User{}))
+				})
 
-				query := fmt.Sprintf(`{user(id:%v){id,name,username}}`, id)
-				params := graphql.Params{Schema: api.Schema, RequestString: query}
-				r := graphql.Do(params)
-				Expect(r.Errors).To(BeEmpty())
+				DescribeTable("Get user by ID", func(id int) {
+					variables["id"] = id
+					expected := testData.GetUser(id)
 
-				user := getData[data.User](r, "user")
+					r := graphql.Do(params)
+					Expect(r.Errors).To(BeEmpty())
 
-				Expect(user).To(Equal(expected))
-			}, userTests)
+					user := getData[data.User](r, "user")
 
-			It("Get all users", func() {
-				expected := testData.GetUsers()
+					Expect(user).To(Equal(expected))
+				}, userTests)
 
-				query := `{users{id,name,username}}`
-				params := graphql.Params{Schema: api.Schema, RequestString: query}
-				r := graphql.Do(params)
-				Expect(r.Errors).To(BeEmpty())
-
-				users := getData[[]data.User](r, "users")
-
-				Expect(users).To(Equal(expected))
-			})
-
-			Context("user albums", func() {
 				DescribeTable("Get user albums", func(id int) {
+					variables["withPhotos"] = true
+					variables["id"] = id
 					expected := testData.GetAlbumsByUserID(id)
 
-					query := fmt.Sprintf(`{user(id:%v){id,albums{id,userid,description}}}`, id)
-					params := graphql.Params{Schema: api.Schema, RequestString: query}
 					r := graphql.Do(params)
 					Expect(r.Errors).To(BeEmpty())
 
@@ -448,58 +452,136 @@ var _ = Describe("Api", func() {
 					Expect(user.Albums).To(Equal(expected))
 				}, userTests)
 
-				It("Get limited user albums less than size", func() {
-					limit := len(testData.GetAlbumsByUserID(0)) - 1
+				Context("limited user albums", func() {
+					var limit int
 
-					query := fmt.Sprintf(`{user(id:0){id,albums(limit:%v){id,userid,description}}}`, limit)
-					params := graphql.Params{Schema: api.Schema, RequestString: query}
+					BeforeEach(func() {
+						query = `
+							query ($limit: Int) {
+								user(id:0) {
+									id
+									albums(limit:$limit) {
+										id
+										userid
+										description
+									}
+								}
+							}`
+					})
+
+					JustBeforeEach(func() {
+						variables["limit"] = limit
+					})
+
+					When("limited less than size", func() {
+						BeforeEach(func() {
+							limit = len(testData.GetAlbumsByUserID(0)) - 1
+						})
+
+						It("returns limit", func() {
+							r := graphql.Do(params)
+							Expect(r.Errors).To(BeEmpty())
+
+							user := getData[data.User](r, "user")
+
+							Expect(user.Albums).To(HaveLen(limit))
+						})
+					})
+
+					When("limited greter than size", func() {
+						BeforeEach(func() {
+							limit = len(testData.GetAlbumsByUserID(0)) + 1
+						})
+
+						It("returns size", func() {
+							expected := len(testData.GetAlbumsByUserID(0))
+
+							r := graphql.Do(params)
+							Expect(r.Errors).To(BeEmpty())
+
+							user := getData[data.User](r, "user")
+
+							Expect(user.Albums).To(HaveLen(expected))
+						})
+					})
+				})
+			})
+
+			Context("users", func() {
+				BeforeEach(func() {
+					query = `
+						query {
+							users {
+								id
+								name
+								username
+								email
+								passwordHash
+							}
+						}`
+				})
+
+				It("Get all users", func() {
+					expected := testData.GetUsers()
+
 					r := graphql.Do(params)
 					Expect(r.Errors).To(BeEmpty())
 
-					user := getData[data.User](r, "user")
+					users := getData[[]data.User](r, "users")
 
-					Expect(user.Albums).To(HaveLen(limit))
+					Expect(users).To(Equal(expected))
 				})
 
-				It("Get limited user albums greater than size", func() {
-					expected := len(testData.GetAlbumsByUserID(0))
-					limit := expected + 1
+				Context("limited users", func() {
+					var limit int
 
-					query := fmt.Sprintf(`{user(id:0){id,albums(limit:%v){id,userid,description}}}`, limit)
-					params := graphql.Params{Schema: api.Schema, RequestString: query}
-					r := graphql.Do(params)
-					Expect(r.Errors).To(BeEmpty())
+					BeforeEach(func() {
+						query = `
+						query ($limit: Int) {
+							users(limit:$limit) {
+								id
+								name
+								username
+							}
+							}`
+					})
 
-					user := getData[data.User](r, "user")
+					JustBeforeEach(func() {
+						variables["limit"] = limit
+					})
 
-					Expect(user.Albums).To(HaveLen(expected))
+					When("limited less than size", func() {
+						BeforeEach(func() {
+							limit = len(testData.GetUsers()) - 1
+						})
+
+						It("returns limit", func() {
+							r := graphql.Do(params)
+							Expect(r.Errors).To(BeEmpty())
+
+							users := getData[[]data.User](r, "users")
+
+							Expect(users).To(HaveLen(limit))
+						})
+					})
+
+					When("limited greter than size", func() {
+						BeforeEach(func() {
+							limit = len(testData.GetUsers()) + 1
+						})
+
+						It("returns size", func() {
+							expected := len(testData.GetUsers())
+
+							r := graphql.Do(params)
+							Expect(r.Errors).To(BeEmpty())
+
+							users := getData[[]data.User](r, "users")
+
+							Expect(users).To(HaveLen(expected))
+						})
+					})
 				})
-			})
-			It("Get limited users less than length", func() {
-				limit := len(testData.GetUsers()) - 1
-
-				query := fmt.Sprintf(`{users(limit:%v){id,name,username}}`, limit)
-				params := graphql.Params{Schema: api.Schema, RequestString: query}
-				r := graphql.Do(params)
-				Expect(r.Errors).To(BeEmpty())
-
-				users := getData[[]data.User](r, "users")
-
-				Expect(users).To(HaveLen(limit))
-			})
-
-			It("Get limited Photos greater than length", func() {
-				expected := len(testData.GetUsers())
-				limit := expected + 1
-
-				query := fmt.Sprintf(`{users(limit:%v){id,name,username}}`, limit)
-				params := graphql.Params{Schema: api.Schema, RequestString: query}
-				r := graphql.Do(params)
-				Expect(r.Errors).To(BeEmpty())
-
-				users := getData[[]data.User](r, "users")
-
-				Expect(users).To(HaveLen(expected))
 			})
 		})
 	})
@@ -550,6 +632,113 @@ var _ = Describe("Api", func() {
 					Expect(r.Errors).To(HaveLen(1))
 					Expect(r.Errors[0].Message).To(Equal("source is not of type data.Album"))
 				}
+			})
+		})
+	})
+
+	Context("Authentication", func() {
+		var variables map[string]interface{}
+		var params graphql.Params
+		var mutation string
+
+		JustBeforeEach(func() {
+			params.RequestString = mutation
+		})
+
+		Context("Valid authentication provider", func() {
+			BeforeEach(func() {
+				auth := NewAuthenticationProvider()
+				api = NewAPI(testData, auth)
+				variables = make(map[string]interface{})
+				params = graphql.Params{
+					Schema:         api.Schema,
+					VariableValues: variables,
+				}
+			})
+
+			When("login", func() {
+				BeforeEach(func() {
+					mutation = `
+						mutation ($email: String!, $password: String!) {
+							login(email:$email, password:$password){
+								token
+								user {
+									id
+								}
+							}
+						}`
+				})
+
+				It("Authenticates valid data", func() {
+					user := testData.GetUser(0)
+					variables["email"] = user.Email
+					variables["password"] = "Password0"
+
+					r := graphql.Do(params)
+					Expect(r.Errors).To(BeEmpty())
+
+					authentication := getData[data.Authentication](r, "authentication")
+
+					Expect(authentication.Token).ToNot(BeNil())
+					Expect(authentication.User.ID).To(Equal(user.ID))
+				})
+
+				When("Invalid Credentials", func() {
+					It("Rejects invalid email", func() {
+						variables["email"] = "not their email"
+						variables["password"] = "Password0"
+
+						r := graphql.Do(params)
+						Expect(r.Errors).To(HaveLen(1))
+						Expect(r.Errors[0].Message).To(Equal("invalid email or password"))
+					})
+
+					It("Rejects invalid password", func() {
+						user := testData.GetUser(0)
+						variables["email"] = user.Email
+						variables["password"] = "not their password"
+
+						r := graphql.Do(params)
+						Expect(r.Errors).To(HaveLen(1))
+						Expect(r.Errors[0].Message).To(Equal("invalid email or password"))
+					})
+				})
+			})
+		})
+
+		Context("Invalid authentication provider", func() {
+			BeforeEach(func() {
+				auth := newInvalidAuthenticationProvider()
+				api = NewAPI(testData, auth)
+				variables = make(map[string]interface{})
+				params = graphql.Params{
+					Schema:         api.Schema,
+					VariableValues: variables,
+				}
+			})
+
+			When("login", func() {
+				BeforeEach(func() {
+					mutation = `
+						mutation ($email: String!, $password: String!) {
+							login(email:$email, password:$password){
+								token
+								user {
+									id
+								}
+							}
+						}`
+				})
+
+				It("fails to Authenticate valid data", func() {
+					user := testData.GetUser(0)
+					variables["email"] = user.Email
+					variables["password"] = "Password0"
+
+					r := graphql.Do(params)
+					Expect(r.Errors).To(HaveLen(1))
+					Expect(r.Errors[0].Message).To(Equal("login failed"))
+				})
 			})
 		})
 	})

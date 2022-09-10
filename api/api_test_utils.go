@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/golang-jwt/jwt/v4"
 	"github.com/graphql-go/graphql"
 	"golang.org/x/exp/maps"
 )
@@ -35,4 +36,11 @@ func convertTo[T any](in interface{}) T {
 	var out T
 	json.Unmarshal(bytes, &out)
 	return out
+}
+
+func newInvalidAuthenticationProvider() IAuthenticationProvider {
+	return &authenticationProvider{
+		signingMethod: jwt.SigningMethodNone, //invalid
+		secretKey:     "A secret key",
+	}
 }

@@ -1,10 +1,17 @@
 package data
 
 type User struct {
-	ID       int
-	Name     string
-	Username string
-	Albums   []Album
+	ID           int
+	Name         string
+	Username     string
+	Albums       []Album
+	Email        string
+	PasswordHash string
+}
+
+type Authentication struct {
+	Token string
+	User  User
 }
 
 type Album struct {
@@ -29,6 +36,7 @@ type IData interface {
 	GetAlbum(id int) Album
 	GetPhoto(id int) Photo
 
+	GetUserWithEmail(email string) (*User, error)
 	GetAlbumsByUserID(userID int) []Album
 	GetPhotosByAlbumID(albumID int) []Photo
 }

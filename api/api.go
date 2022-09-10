@@ -1,11 +1,13 @@
 package api
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/Dylan-Kentish/GraphQLFakeDataAPI/data"
 	"github.com/Dylan-Kentish/GraphQLFakeDataAPI/utils"
 	"github.com/graphql-go/graphql"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type API struct {
@@ -15,7 +17,7 @@ type API struct {
 	PhotoType *graphql.Object
 }
 
-func NewAPI(dataModel data.IData) *API {
+func NewAPI(dataModel data.IData, authenticationProvider IAuthenticationProvider) *API {
 	photoType := graphql.NewObject(graphql.ObjectConfig{
 		Name:        "Photo",
 		Description: "A photo.",
@@ -127,6 +129,24 @@ func NewAPI(dataModel data.IData) *API {
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 					return resolveType(p, func(user data.User) interface{} {
 						return user.Username
+					})
+				},
+			},
+			"email": &graphql.Field{
+				Type:        graphql.String,
+				Description: "The email of the user.",
+				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+					return resolveType(p, func(user data.User) interface{} {
+						return user.Email
+					})
+				},
+			},
+			"passwordHash": &graphql.Field{
+				Type:        graphql.String,
+				Description: "The password hash of the user.",
+				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+					return resolveType(p, func(user data.User) interface{} {
+						return string(user.PasswordHash[:])
 					})
 				},
 			},
@@ -258,8 +278,75 @@ func NewAPI(dataModel data.IData) *API {
 		},
 	})
 
+	authenticationType := graphql.NewObject(graphql.ObjectConfig{
+		Name: "Authentication",
+		Fields: graphql.Fields{
+			"token": &graphql.Field{
+				Type:        graphql.String,
+				Description: "Authentication token",
+				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+					return resolveType(p, func(auth data.Authentication) interface{} {
+						return auth.Token
+					})
+				},
+			},
+			"user": &graphql.Field{
+				Type:        userType,
+				Description: "User",
+				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+					return resolveType(p, func(auth data.Authentication) interface{} {
+						return auth.User
+					})
+				},
+			},
+		},
+	})
+
+	mutationType := graphql.NewObject(graphql.ObjectConfig{
+		Name: "Mutation",
+		Fields: graphql.Fields{
+			"login": &graphql.Field{
+				Type:        authenticationType,
+				Description: "User authentication",
+				Args: graphql.FieldConfigArgument{
+					"email": &graphql.ArgumentConfig{
+						Description: "email of the user",
+						Type:        graphql.NewNonNull(graphql.String),
+					},
+					"password": &graphql.ArgumentConfig{
+						Description: "password of the user",
+						Type:        graphql.NewNonNull(graphql.String),
+					},
+				},
+				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+					user, err := dataModel.GetUserWithEmail(p.Args["email"].(string))
+
+					if err != nil {
+						return nil, errors.New("invalid email or password")
+					}
+
+					if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(p.Args["password"].(string))); err != nil {
+						return nil, errors.New("invalid email or password")
+					}
+
+					token, err := authenticationProvider.GetToken(user.ID)
+
+					if err != nil {
+						return nil, errors.New("login failed")
+					}
+
+					return data.Authentication{
+						Token: token,
+						User:  *user,
+					}, nil
+				},
+			},
+		},
+	})
+
 	schema, _ := graphql.NewSchema(graphql.SchemaConfig{
-		Query: queryType,
+		Query:    queryType,
+		Mutation: mutationType,
 	})
 
 	return &API{
