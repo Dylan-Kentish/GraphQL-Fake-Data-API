@@ -3,17 +3,12 @@ package api
 import (
 	"errors"
 	"fmt"
-	"strconv"
-	"time"
 
 	"github.com/Dylan-Kentish/GraphQLFakeDataAPI/data"
 	"github.com/Dylan-Kentish/GraphQLFakeDataAPI/utils"
-	"github.com/golang-jwt/jwt/v4"
 	"github.com/graphql-go/graphql"
 	"golang.org/x/crypto/bcrypt"
 )
-
-var secretKey = "This is very secret!"
 
 type API struct {
 	Schema    graphql.Schema
@@ -22,7 +17,7 @@ type API struct {
 	PhotoType *graphql.Object
 }
 
-func NewAPI(dataModel data.IData) *API {
+func NewAPI(dataModel data.IData, authenticationProvider IAuthenticationProvider) *API {
 	photoType := graphql.NewObject(graphql.ObjectConfig{
 		Name:        "Photo",
 		Description: "A photo.",
@@ -334,15 +329,9 @@ func NewAPI(dataModel data.IData) *API {
 						return nil, errors.New("invalid email or password")
 					}
 
-					claims := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.RegisteredClaims{
-						Issuer:    strconv.Itoa(user.ID),
-						ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour)),
-					})
-
-					token, err := claims.SignedString([]byte(secretKey))
+					token, err := authenticationProvider.GetToken(user.ID)
 
 					if err != nil {
-						// What would cause this to happen?
 						return nil, errors.New("login failed")
 					}
 
