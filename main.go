@@ -10,7 +10,8 @@ import (
 
 func main() {
 	data := api.NewTestData()
-	api := api.NewAPI(data)
+	auth := api.NewAuthenticationProvider()
+	api := api.NewAPI(data, auth)
 
 	h := handler.New(&handler.Config{
 		Schema:   &api.Schema,
